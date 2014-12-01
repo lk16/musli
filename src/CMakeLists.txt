@@ -4,11 +4,7 @@ project(musli)
 
 find_package(PkgConfig)
 
-#pkg_check_modules(GTKMM gtkmm-3.0)
-#pkg_check_modules(GLIBMM glibmm-2.4)
-#pkg_check_modules(GTK_PLUS gtk+-2.0)
-#pkg_check_modules(GDK_PIXBUF gdk-pixbuf-2.0)
-
+pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
 set(DEBUG_FLAGS
   "-std=c99 -I .. -pthread -Wall -Wextra -g -Wfloat-equal -Wno-unused-result -Wshadow -Wstrict-aliasing"
@@ -23,25 +19,42 @@ set(OPTIMIZING_FLAGS
 )
 
 set(CMAKE_C_FLAGS 
-  #${OPTIMIZING_FLAGS}
+  ${OPTIMIZING_FLAGS}
   #${OPTIMIZED_DEBUG_FLAGS}
-  ${DEBUG_FLAGS}
+  #${DEBUG_FLAGS}
 ) 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${GTK3_INCLUDE_DIRS})
+link_directories(${GTK3_LIBRARY_DIRS})
 
 
-add_executable(../debug
+add_library(musli STATIC
+  bitwise.c
   board.c
-  debug.c
+  bot_moves.c
+  bot_stats.c
+  game.c
   human.c
   player.c
-  bitwise.c
+)
+
+add_executable(../debug
+  debug.c
 )
 
 target_link_libraries(../debug
-#  ${GTKMM_LIBRARIES}
-#  ${GLIBMM_LIBRARIES}
-#  ${GDK_PIXBUF_LIBRARIES}
+  musli
+)
+
+add_executable(../musli
+  musli.c
+  main_window.c
+  game_config.c
+)
+
+target_link_libraries(../musli
+  musli
+  ${GTK3_LIBRARIES}
 )

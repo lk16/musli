@@ -1,9 +1,5 @@
 #include "board.h"
 
-extern inline int uint64_find_first(uint64_t b);
-extern inline int uint64_find_last(uint64_t b);
-extern inline int uint64_count(uint64_t b);
-
 const int board_walk_diff[8][7] = {
   {- 9,-18,-27,-36,-45,-54,-63}, // 0: up left
   {- 8,-16,-24,-32,-40,-48,-56}, // 1: up 
@@ -108,8 +104,8 @@ void board_print(const board* b, FILE* file,int turn)
   int f;
   uint64_t moves,white,black;
   moves = board_get_moves(b);
-  white = turn ? b->me : b->opp;
-  black = turn ? b->opp : b->me;
+  black = turn ? b->me : b->opp;
+  white = turn ? b->opp : b->me;
   for(f=0;f<64;f++){
     if(f%8 == 0){
       fprintf(file,"%d ",(f/8)+1);
@@ -237,10 +233,114 @@ uint64_t board_get_moves(const board* b)
   return res;
 }
 
+int board_count_opponent_moves(const board* b)
+{
+  uint64_t res = 0ull;
+  
+  for(int d=4;d<8;d++){
+    res |= 
+    (
+    ((b->me >> board_walk_diff[d][0]) & board_walk_possible[d][0]) 
+    & 
+    (
+    ((b->opp >> board_walk_diff[d][1]) & board_walk_possible[d][1])
+    |
+    (
+    ((b->me >> board_walk_diff[d][1]) & board_walk_possible[d][1])
+    &
+    (
+    ((b->opp >> board_walk_diff[d][2]) & board_walk_possible[d][2])
+    |
+    (
+    ((b->me >> board_walk_diff[d][2]) & board_walk_possible[d][2])
+    &
+    (
+    ((b->opp >> board_walk_diff[d][3]) & board_walk_possible[d][3])
+    |
+    (
+    ((b->me >> board_walk_diff[d][3]) & board_walk_possible[d][3])
+    &
+    (
+    ((b->opp >> board_walk_diff[d][4]) & board_walk_possible[d][4])
+    |
+    (
+    ((b->me >> board_walk_diff[d][4]) & board_walk_possible[d][4])
+    &
+    (
+    ((b->opp >> board_walk_diff[d][5]) & board_walk_possible[d][5])
+    |
+    (
+    ((b->me >> board_walk_diff[d][5]) & board_walk_possible[d][5])
+    &
+    ((b->opp >> board_walk_diff[d][6]) & board_walk_possible[d][6])
+    )
+    )
+    )
+    )  
+    )
+    )
+    )
+    )
+    )
+    )
+    );
+    
+    res |= 
+    (
+    ((b->me << board_walk_diff[d][0]) & board_walk_possible[7-d][0]) 
+    & 
+    (
+    ((b->opp << board_walk_diff[d][1]) & board_walk_possible[7-d][1])
+    |
+    (
+    ((b->me << board_walk_diff[d][1]) & board_walk_possible[7-d][1])
+    &
+    (
+    ((b->opp << board_walk_diff[d][2]) & board_walk_possible[7-d][2])
+    |
+    (
+    ((b->me << board_walk_diff[d][2]) & board_walk_possible[7-d][2])
+    &
+    (
+    ((b->opp << board_walk_diff[d][3]) & board_walk_possible[7-d][3])
+    |
+    (
+    ((b->me << board_walk_diff[d][3]) & board_walk_possible[7-d][3])
+    &
+    (
+    ((b->opp << board_walk_diff[d][4]) & board_walk_possible[7-d][4])
+    |
+    (
+    ((b->me << board_walk_diff[d][4]) & board_walk_possible[7-d][4])
+    &
+    (
+    ((b->opp << board_walk_diff[d][5]) & board_walk_possible[7-d][5])
+    |
+    (
+    ((b->me << board_walk_diff[d][5]) & board_walk_possible[7-d][5])
+    &
+    ((b->opp << board_walk_diff[d][6]) & board_walk_possible[7-d][6])
+    )
+    )
+    )
+    )  
+    )
+    )
+    )
+    )
+    )
+    )
+    );
+  }
+  
+  res &= ~(b->opp | b->me);
+  return uint64_count(res);
+}
+
 int board_is_valid_move(const board* b, int move)
 {
   uint64_t moves = board_get_moves(b);
-  return moves & (1ull << move);
+  return (moves & (1ull << move))!=0;
 }
 
 uint64_t board_do_move(board* b,int move){
@@ -371,4 +471,61 @@ void board_switch_turn(board* b)
   uint64_t tmp = b->opp;
   b->opp = b->me;
   b->me = tmp;
+}
+
+int board_count_moves(const board* b)
+{
+  return uint64_count(board_get_moves(b));
+}
+
+int board_has_valid_moves(const board* b)
+{
+  return board_get_moves(b)!=0ull;
+}
+
+int board_get_disc_diff(const board* b) 
+{
+  int count[2];
+  
+  count[0] = uint64_count(b->me);
+  count[1] = uint64_count(b->opp);
+  
+  if(count[0] > count[1]){ /* I win */
+    return 64 - (2*count[1]);
+  }
+  else if(count[0] < count[1]){ /* Opp wins */
+    return -64 + (2*count[0]);
+  }
+  else{ /* draw */
+    return 0;
+  }
+}
+
+board* board_get_children(const board* b, board* out)
+{
+  board* out_end = out;
+  uint64_t valid_moves =  board_get_moves(b);
+  
+  while(valid_moves != 0ull){
+    int move_id = uint64_find_first(valid_moves);
+    *out_end = *b;
+    board_do_move(out_end,move_id);
+    out_end++;
+    valid_moves &= uint64_reset[move_id]; 
+  }
+  return out_end;
+}
+
+int board_only_similar_siblings(const board* children, int size)
+{
+  (void)children;
+  (void)size;
+  return 0;
+}
+
+void board_undo_move(board* b,int move,uint64_t undo)
+{
+  uint64_t tmp = b->me;
+  b->me = b->opp & ~(undo | uint64_set[move]);
+  b->opp = tmp | undo;
 }

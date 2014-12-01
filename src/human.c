@@ -1,6 +1,6 @@
 #include "human.h"
 
-int human_do_move(human* h, const board* b)
+void human_do_move(human* h, const board* b,board* res)
 {
   (void)h;
   const int input_size = 4;
@@ -12,9 +12,12 @@ int human_do_move(human* h, const board* b)
       int move;
       move = (input[0]-'a') + 8*(input[1]-'1');
       if(board_is_valid_move(b,move)){
-        return move;
+        *res = *b;
+        board_do_move(res,move);
+        return;
       }
     }
     printf("%s","Invalid move.\n");
+    fflush(stdin);
   }
 }
