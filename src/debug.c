@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include "board.h"
-#include "const.h"
+#include "macros.h"
 #include "bot_moves.h"
 
 void debug_bot_moves_do_move_normally(bot_moves* bot,const board* b, board* res)
@@ -39,6 +39,5 @@ int main(){
   board b,res;
   board_init(&b);
   debug_bot_moves_do_move_normally(&bot,&b,&res);
-  board_print(&res,stdout,1);
   return 0;  
 }

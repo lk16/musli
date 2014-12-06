@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <sys/time.h>
 
+
+
 typedef struct bot_stats{
   struct timeval start_time,stop_time;
   unsigned long long nodes;

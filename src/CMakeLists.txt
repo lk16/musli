@@ -19,9 +19,9 @@ set(OPTIMIZING_FLAGS
 )
 
 set(CMAKE_C_FLAGS 
-  ${OPTIMIZING_FLAGS}
+  #${OPTIMIZING_FLAGS}
   #${OPTIMIZED_DEBUG_FLAGS}
-  #${DEBUG_FLAGS}
+  ${DEBUG_FLAGS}
 ) 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -35,9 +35,11 @@ add_library(musli STATIC
   board.c
   bot_moves.c
   bot_stats.c
-  game.c
+  game_config.c
   human.c
   player.c
+  clickable_image.c
+  args.c
 )
 
 add_executable(../debug

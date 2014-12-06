@@ -98,36 +98,7 @@ void board_init(board* b)
   b->me = (1ull << 28) | (1ull << 35);
 }
 
-void board_print(const board* b, FILE* file,int turn)
-{
-  fprintf(file,"%s","+-a-b-c-d-e-f-g-h-+\n");
-  int f;
-  uint64_t moves,white,black;
-  moves = board_get_moves(b);
-  black = turn ? b->me : b->opp;
-  white = turn ? b->opp : b->me;
-  for(f=0;f<64;f++){
-    if(f%8 == 0){
-      fprintf(file,"%d ",(f/8)+1);
-    }
-    if(white & (1ull << f)){
-      fprintf(file,"%s","\033[31;1m\u2B24\033[0m ");
-    }
-    else if(black & (1ull << f)){
-      fprintf(file,"%s","\033[34;1m\u2B24\033[0m ");
-    }
-    else if(moves & (1ull << f)){
-      fprintf(file,"%s", "- ");
-    }  
-    else{
-      fprintf(file,"%s","  ");
-    }
-    if(f%8 == 7){
-      fprintf(file,"%s","|\n");
-    }
-  }
-  fprintf(file,"%s","+-----------------+\n");
-}
+
 
 uint64_t board_get_moves(const board* b)
 {
@@ -483,6 +454,12 @@ int board_has_valid_moves(const board* b)
   return board_get_moves(b)!=0ull;
 }
 
+int board_opponent_has_valid_moves(const board* b)
+{
+  return board_count_opponent_moves(b)!=0;
+}
+
+
 int board_get_disc_diff(const board* b) 
 {
   int count[2];
@@ -528,4 +505,9 @@ void board_undo_move(board* b,int move,uint64_t undo)
   uint64_t tmp = b->me;
   b->me = b->opp & ~(undo | uint64_set[move]);
   b->opp = tmp | undo;
+}
+
+int board_test_game_ended(const board* b)
+{
+  return !(board_has_valid_moves(b) || board_opponent_has_valid_moves(b));
 }

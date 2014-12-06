@@ -15,7 +15,7 @@ typedef struct board{
 void board_init(board* b);
 void board_clear(board* b);
 
-void board_print(const board* b,FILE* file,int turn);
+//void board_print(const board* b,FILE* file,int turn);
 
 
 uint64_t board_do_move(board* b,int move);
@@ -27,8 +27,11 @@ int board_count_opponent_moves(const board* b);
 
 int board_is_valid_move(const board* b,int move);
 int board_has_valid_moves(const board* b);
+int board_opponent_has_valid_moves(const board* b);
 
 int board_get_disc_diff(const board* b);
+
+int board_test_game_ended(const board* b);
 
 void board_switch_turn(board* b);
 

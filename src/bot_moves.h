@@ -4,8 +4,7 @@
 
 #include "board.h"
 #include "bot_stats.h"
-#include "const.h"
-
+#include "macros.h"
 
 static const int bot_moves_max_sort_depth = 8;
 
