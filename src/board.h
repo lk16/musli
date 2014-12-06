@@ -38,3 +38,5 @@ void board_switch_turn(board* b);
 board* board_get_children(const board* b,board* out);
 
 int board_only_similar_siblings(const board* children,int size);
+
+int board_equals(const board* lhs,const board* rhs);

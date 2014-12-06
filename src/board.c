@@ -511,3 +511,9 @@ int board_test_game_ended(const board* b)
 {
   return !(board_has_valid_moves(b) || board_opponent_has_valid_moves(b));
 }
+
+
+int board_equals(const board* lhs, const board* rhs)
+{
+  return lhs->me==rhs->me && lhs->opp==rhs->opp;
+}

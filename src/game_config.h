@@ -35,7 +35,7 @@ void game_state_switch_turn(game_state* gs);
 
 typedef struct game_config{
   player players[2];
-  game_state history[60];
+  game_state history[61];
   int current,redo_max;
   game_type type;
   display_type display;

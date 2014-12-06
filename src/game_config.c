@@ -71,11 +71,13 @@ int game_config_timeout(game_config* gc)
     player* p = game_config_get_player_to_move(gc);
     if(p->type != PLAYER_HUMAN){
       game_state* s = game_config_get_state(gc);
-      player_do_move(p,&s->discs,&((s+1)->discs));
-      (s+1)->turn = s->turn; 
-      game_state_update_turn(s+1);
-      gc->current = gc->redo_max = gc->current + 1;
-      game_config_show_updated_field(gc);
+      if(!board_test_game_ended(&s->discs)){
+        player_do_move(p,&s->discs,&((s+1)->discs));
+        (s+1)->turn = s->turn; 
+        game_state_update_turn(s+1);
+        gc->current = gc->redo_max = gc->current + 1;
+        game_config_show_updated_field(gc);
+      }
     }
   }
   return G_SOURCE_CONTINUE;
@@ -99,8 +101,20 @@ void game_config_undo_move(game_config* gc)
 
 void game_config_on_ended(const game_config* gc)
 {
-  (void)gc;
   printf("%s","Game over!\n");
+  const game_state* s = game_config_get_state_const(gc);
+  int count[2];
+  count[0] = s->turn ? s->discs.opp : s->discs.me;
+  count[1] = s->turn ? s->discs.me : s->discs.opp;
+  if(count[0] > count[1]){
+    printf("Black wins: %d - %d\n",count[0],count[1]);
+  }
+  else if(count[0] < count[1]){
+    printf("White wins: %d - %d\n",count[1],count[0]);
+  }
+  else{
+    printf("Draw: %d - %d",count[0],count[1]);
+  }
 }
 
 game_state* game_config_get_state(game_config* gc)

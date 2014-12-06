@@ -24,3 +24,7 @@
     uint64_counts[((b) >> 32) & 0xFFFF] + \
     uint64_counts[((b) >> 48) & 0xFFFF] \
   )
+
+#define generic_swap(x,y) \
+  { __typeof__(x) __tmp = x; x=y; y=__tmp; } 
+  
