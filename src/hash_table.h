@@ -30,7 +30,7 @@ unsigned long long hash_of_board(const board* b);
 void hash_table_init(hash_table* ht);
 void hash_table_init_clear(hash_table* ht);
 
-void hash_table_add(hash_table* ht,const board* key,const hash_table_value* value);
+int hash_table_add(hash_table* ht,const board* key,const hash_table_value* value);
 void hash_table_clear(hash_table* ht);
 
 hash_table_value* hash_table_find(hash_table* ht,const board* key);
