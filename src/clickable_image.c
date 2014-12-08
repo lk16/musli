@@ -1,7 +1,7 @@
 #include "clickable_image.h"
 
 void clickable_image_init(
-  clickable_image* ci, 
+  struct clickable_image* ci, 
   const char* file,
   int index,
   struct game_config* gc
@@ -17,15 +17,17 @@ void clickable_image_init(
   );
 }
 
-void game_config_process_click(game_config*,int);
+void game_config_process_click(struct game_config*,int,int);
 
 void clickable_image_on_click(
   GtkWidget* widget,
   GdkEvent* event,
-  clickable_image* ci
+  struct clickable_image* ci
 ){
   (void)widget;
-  if(event->button.type==GDK_BUTTON_PRESS && event->button.button==1){
-    game_config_process_click(ci->gc,ci->index);
+  if(event->button.type==GDK_BUTTON_PRESS && 
+    (event->button.button==1 || event->button.button==3)
+  ){
+    game_config_process_click(ci->gc,ci->index,event->button.button);
   }
 }

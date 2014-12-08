@@ -87,12 +87,12 @@ const uint64_t board_walk_possible[8][7] = {
 };
 
 
-void board_clear(board* b)
+void board_clear(struct board* b)
 {
   b->me = b->opp = 0ull;
 }
 
-void board_init(board* b)
+void board_init(struct board* b)
 {
   b->opp = (1ull << 27) | (1ull << 36);
   b->me = (1ull << 28) | (1ull << 35);
@@ -100,7 +100,7 @@ void board_init(board* b)
 
 
 
-uint64_t board_get_moves(const board* b)
+uint64_t board_get_moves(const struct board* b)
 {
   uint64_t res = 0ull;
   
@@ -204,7 +204,7 @@ uint64_t board_get_moves(const board* b)
   return res;
 }
 
-int board_count_opponent_moves(const board* b)
+int board_count_opponent_moves(const struct board* b)
 {
   uint64_t res = 0ull;
   
@@ -308,13 +308,13 @@ int board_count_opponent_moves(const board* b)
   return uint64_count(res);
 }
 
-int board_is_valid_move(const board* b, int move)
+int board_is_valid_move(const struct board* b, int move)
 {
   uint64_t moves = board_get_moves(b);
   return (moves & (1ull << move))!=0;
 }
 
-uint64_t board_do_move(board* b,int move){
+uint64_t board_do_move(struct board* b,int move){
   uint64_t line,flipped = 0ull;
   int end;
   
@@ -437,30 +437,30 @@ uint64_t board_do_move(board* b,int move){
   return flipped; 
 }
 
-void board_switch_turn(board* b)
+void board_switch_turn(struct board* b)
 {
   uint64_t tmp = b->opp;
   b->opp = b->me;
   b->me = tmp;
 }
 
-int board_count_moves(const board* b)
+int board_count_moves(const struct board* b)
 {
   return uint64_count(board_get_moves(b));
 }
 
-int board_has_valid_moves(const board* b)
+int board_has_valid_moves(const struct board* b)
 {
   return board_get_moves(b)!=0ull;
 }
 
-int board_opponent_has_valid_moves(const board* b)
+int board_opponent_has_valid_moves(const struct board* b)
 {
   return board_count_opponent_moves(b)!=0;
 }
 
 
-int board_get_disc_diff(const board* b) 
+int board_get_disc_diff(const struct board* b) 
 {
   int count[2];
   
@@ -478,9 +478,9 @@ int board_get_disc_diff(const board* b)
   }
 }
 
-board* board_get_children(const board* b, board* out)
+struct board* board_get_children(const struct board* b, struct board* out)
 {
-  board* out_end = out;
+  struct board* out_end = out;
   uint64_t valid_moves =  board_get_moves(b);
   
   while(valid_moves != 0ull){
@@ -493,27 +493,45 @@ board* board_get_children(const board* b, board* out)
   return out_end;
 }
 
-int board_only_similar_siblings(const board* children, int size)
+int board_only_similar_siblings(const struct board* children, int size)
 {
   (void)children;
   (void)size;
   return 0;
 }
 
-void board_undo_move(board* b,int move,uint64_t undo)
+void board_undo_move(struct board* b,int move,uint64_t undo)
 {
   uint64_t tmp = b->me;
   b->me = b->opp & ~(undo | uint64_set[move]);
   b->opp = tmp | undo;
 }
 
-int board_test_game_ended(const board* b)
+int board_test_game_ended(const struct board* b)
 {
   return !(board_has_valid_moves(b) || board_opponent_has_valid_moves(b));
 }
 
 
-int board_equals(const board* lhs, const board* rhs)
+int board_equals(const struct board* lhs, const struct board* rhs)
 {
   return lhs->me==rhs->me && lhs->opp==rhs->opp;
+}
+
+void board_do_random_moves(struct board* b, int n)
+{
+  struct board children[32];
+  struct board* child_end;
+  while(n!=0){
+    if(board_test_game_ended(b)){
+      break;
+    }
+    child_end = board_get_children(b,children);
+    if(child_end == children){
+      board_switch_turn(b);
+      child_end = board_get_children(b,children);
+    }
+    *b = children[rand() % (child_end-children)];
+    n--;
+  }
 }

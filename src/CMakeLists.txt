@@ -19,9 +19,9 @@ set(OPTIMIZING_FLAGS
 )
 
 set(CMAKE_C_FLAGS 
-  #${OPTIMIZING_FLAGS}
+  ${OPTIMIZING_FLAGS}
   #${OPTIMIZED_DEBUG_FLAGS}
-  ${DEBUG_FLAGS}
+  #${DEBUG_FLAGS}
 ) 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -41,6 +41,8 @@ add_library(musli STATIC
   clickable_image.c
   args.c
   hash_table.c
+  pvs_helper.c
+  player_name.c
 )
 
 add_executable(../debug

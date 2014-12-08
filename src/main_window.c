@@ -1,6 +1,6 @@
 #include "main_window.h"
 
-void main_window_init(main_window* mw)
+void main_window_init(struct main_window* mw)
 {
   
   mw->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -22,10 +22,7 @@ void main_window_init(main_window* mw)
   gtk_widget_show_all(mw->window);
 }
 
-
-void clickable_image_init(clickable_image*,const char*,int,game_config*);
-
-void main_window_table_init(main_window* mw)
+void main_window_table_init(struct main_window* mw)
 {
   int x,y;
   for(x=0;x<8;x++){
@@ -42,7 +39,7 @@ void main_window_table_init(main_window* mw)
 }
 
 
-void main_window_update_fields(main_window* mw, const game_state* gs)
+void main_window_update_fields(struct main_window* mw, const struct game_state* gs)
 {
   const char* imagefile;
   uint64_t black = (gs->turn ? gs->discs.opp : gs->discs.me);

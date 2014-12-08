@@ -2,10 +2,13 @@
 
 #include "assert.h"
 
+
+
 #define MIN_HEURISTIC (-64000)
 #define MAX_HEURISTIC (64000)
 #define MIN_PERFECT_HEURISTIC (-64)
 #define MAX_PERFECT_HEURISTIC (64)
+
 
 
 // returns 64 if b==0ul, returns least significant bit otherwise

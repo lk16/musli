@@ -4,8 +4,7 @@
 
 #include "board.h"
 
-typedef struct human{
-  
-} human;
+struct human{
+};
 
-void human_do_move(human* h,const board* b,board* res);
+void human_do_move(struct human* h,const struct board* b,struct board* res);

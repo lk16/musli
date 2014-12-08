@@ -1,14 +1,15 @@
 #include "args.h"
 
-static const musli_arg musli_arg_list[] = {
+static const struct musli_arg musli_arg_list[] = {
   {"-lb",arg_set_black_level},
-  {"-lw",arg_set_white_level}
+  {"-lw",arg_set_white_level},
+  {"-setup",arg_set_type_setup}
 };
 
-void arg_parse(int argc, const char** argv, game_config* gc)
+void arg_parse(int argc, const char** argv,struct game_config* gc)
 {
   const int musli_arg_list_size = sizeof(musli_arg_list)/sizeof(musli_arg_list[0]);
-  parse_state ps;
+  struct parse_state ps;
   ps.argc = argc;
   ps.argv = argv;
   ps.index = 1;
@@ -34,12 +35,12 @@ void arg_parse(int argc, const char** argv, game_config* gc)
   }
 }
 
-int arg_parse_has_enough_args(const parse_state* ps, int n)
+int arg_parse_has_enough_args(const struct parse_state* ps, int n)
 {
   return ps->index + n <= ps->argc;
 }
 
-int arg_set_level(game_config* gc, const parse_state* ps, int colour)
+int arg_set_level(struct game_config* gc, const struct parse_state* ps, int colour)
 {
   int d,pd;
   d = pd = 0;
@@ -59,19 +60,39 @@ int arg_set_level(game_config* gc, const parse_state* ps, int colour)
 }
 
 
-int arg_set_black_level(game_config* gc, const parse_state* ps)
+int arg_set_black_level(struct game_config* gc, const struct parse_state* ps)
 {
   return arg_set_level(gc,ps,0);
 }
 
-int arg_set_white_level(game_config* gc, const parse_state* ps)
+int arg_set_white_level(struct game_config* gc, const struct parse_state* ps)
 {
   return arg_set_level(gc,ps,1);
 }
 
+int arg_set_type_setup(struct game_config* gc, const struct parse_state* ps)
+{
+  (void)ps;
+  gc->type = GAME_TYPE_SETUP;
+  return 1;
+}
+
+int arg_set_bot_type(struct game_config* gc, const struct parse_state* ps)
+{
+  if(!arg_parse_has_enough_args(ps,2)){
+    return MUSLI_ARG_PARSE_ERROR;
+  }
+  enum player_type type;
+  type = player_name_to_type(ps->argv[ps->index + 1]);
+  if(type == PLAYER_NOT_FOUND){
+    return MUSLI_ARG_PARSE_ERROR;
+  }
+  gc->bot_type = type;
+  return 2;
+}
 
 
-void arg_parse_show_error(const parse_state* mps)
+void arg_parse_show_error(const struct parse_state* mps)
 {
   printf("Error in parsing near argument \"%s\".\n",mps->argv[mps->index]);
 }

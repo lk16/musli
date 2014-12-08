@@ -1,6 +1,6 @@
 #include "human.h"
 
-void human_do_move(human* h, const board* b,board* res)
+void human_do_move(struct human* h, const struct board* b,struct board* res)
 {
   (void)h;
   const int input_size = 4;

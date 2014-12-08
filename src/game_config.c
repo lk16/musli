@@ -1,27 +1,26 @@
 #include "game_config.h"
 
-void game_config_on_new_game(game_config* gc)
+void game_config_on_new_game(struct game_config* gc)
 {
   gc->current = gc->redo_max = 0;
   game_state_init(&gc->history[0]);
   game_config_show_updated_field(gc);
 }
 
-void game_config_init(game_config* gc,struct main_window* mw)
+void game_config_init(struct game_config* gc,struct main_window* mw)
 {
   player_init(&gc->players[0],PLAYER_HUMAN,1,1);
   player_init(&gc->players[1],PLAYER_HUMAN,1,1);
   gc->type = GAME_TYPE_MATCH;
   gc->display = DISPLAY_WINDOW;
   gc->window = mw;
+  gc->bot_type = PLAYER_DEFAULT_BOT;
   game_config_on_new_game(gc);
 }
 
-void main_window_update_fields(struct main_window*,const game_state*);
-
-void game_config_show_updated_field(const game_config* gc)
+void game_config_show_updated_field(const struct game_config* gc)
 {
-  const game_state* current = game_config_get_state_const(gc);
+  const struct game_state* current = game_config_get_state_const(gc);
   
   switch(gc->display){
     case DISPLAY_CONSOLE:
@@ -35,42 +34,70 @@ void game_config_show_updated_field(const game_config* gc)
   }
 }
 
-void game_config_process_click(game_config* gc, int index)
+void game_config_process_click(struct game_config* gc, int index,int button)
 {
+  struct player* player_to_move = game_config_get_player_to_move(gc);
+  struct game_state* state = game_config_get_state(gc);
+  
   switch(gc->type){
     case GAME_TYPE_MATCH:{
-      player* p = game_config_get_player_to_move(gc);
-      if(p->type != PLAYER_HUMAN){
+      if(button != LEFT_BUTTON){
         return;
       }
-      game_state* state = game_config_get_state(gc);
+      if(player_to_move->type != PLAYER_HUMAN){
+        return;
+      }
       if(!board_is_valid_move(&state->discs,index)){
         return;
       }
-      
       *(state+1) = *state;
       board_do_move(&((state+1)->discs),index);
       game_state_update_turn(state+1);
       gc->current = gc->redo_max = gc->current + 1;
-      game_config_show_updated_field(gc);
-      break;
     }
+    break;
+    case GAME_TYPE_SETUP:{
+      switch(button){
+        case LEFT_BUTTON:{
+          uint64_t *me = &state->discs.me;
+          uint64_t *opp = &state->discs.opp;
+          if(*me & uint64_set[index]){
+            *me &= uint64_reset[index];
+            *opp |= uint64_set[index];
+          }
+          else if(*opp & uint64_set[index]){
+            *opp &= uint64_reset[index];
+          }
+          else{
+            *me |= uint64_set[index];
+          }
+        }
+        break;
+        case RIGHT_BUTTON:{
+          game_state_switch_turn(state);
+        }
+        break;
+      }
+    }
+    break;
     default:
       printf("%s","game_config_process_click: this is not implemented!\n");
   }
+  game_config_show_updated_field(gc);
 }
+    
 
-player* game_config_get_player_to_move(game_config* gc)
+struct player* game_config_get_player_to_move(struct game_config* gc)
 {
   return &gc->players[gc->history[gc->current].turn];
 }
 
-int game_config_timeout(game_config* gc)
+int game_config_timeout(struct game_config* gc)
 {
   if(gc->type == GAME_TYPE_MATCH){
-    player* p = game_config_get_player_to_move(gc);
+    struct player* p = game_config_get_player_to_move(gc);
     if(p->type != PLAYER_HUMAN){
-      game_state* s = game_config_get_state(gc);
+      struct game_state* s = game_config_get_state(gc);
       if(!board_test_game_ended(&s->discs)){
         player_do_move(p,&s->discs,&((s+1)->discs));
         (s+1)->turn = s->turn; 
@@ -85,24 +112,24 @@ int game_config_timeout(game_config* gc)
 
 
 
-void game_config_redo_move(game_config* gc)
+void game_config_redo_move(struct game_config* gc)
 {
   if(gc->current <= gc->redo_max){
     gc->current++;
   }
 }
 
-void game_config_undo_move(game_config* gc)
+void game_config_undo_move(struct game_config* gc)
 {
   if(gc->current >= 0){
     gc->current--;
   }
 }
 
-void game_config_on_ended(const game_config* gc)
+void game_config_on_ended(const struct game_config* gc)
 {
   printf("%s","Game over!\n");
-  const game_state* s = game_config_get_state_const(gc);
+  const struct game_state* s = game_config_get_state_const(gc);
   int count[2];
   count[0] = s->turn ? s->discs.opp : s->discs.me;
   count[1] = s->turn ? s->discs.me : s->discs.opp;
@@ -117,45 +144,39 @@ void game_config_on_ended(const game_config* gc)
   }
 }
 
-game_state* game_config_get_state(game_config* gc)
+struct game_state* game_config_get_state(struct game_config* gc)
 {
   return &gc->history[gc->current];
 }
 
-const game_state* game_config_get_state_const(const game_config* gc)
+const struct game_state* game_config_get_state_const(const struct game_config* gc)
 {
   return &gc->history[gc->current];
 }
 
 
 
-void game_config_console_main(game_config* gc)
+void game_config_console_main(struct game_config* gc)
 {
-  game_state *state,*next;
+  struct game_state *state,*next;
   
   while(1){
     state = game_config_get_state(gc);
+    if(board_test_game_ended(&state->discs)){
+      break;
+    }
     next = state + 1;
-    player* p = gc->players + state->turn;
+    struct player* p = gc->players + state->turn;
     game_config_show_updated_field(gc);
     player_do_move(p,&state->discs,&next->discs);
     gc->current = gc->redo_max = gc->current + 1;
-    next->turn = 1 - state->turn;
-    if(board_has_valid_moves(&next->discs)){
-      continue;
-    }
-    //board_switch_turn(&next->discs);
-    next->turn = 1 - next->turn;
-    if(board_has_valid_moves(&next->discs)){
-      continue;
-    }
-    break;
+    game_state_update_turn(next);
   }
   game_config_on_ended(gc);
 }
 
 
-void game_state_print(const game_state* gs, FILE* file)
+void game_state_print(const struct game_state* gs, FILE* file)
 {
   fprintf(file,"%s","+-a-b-c-d-e-f-g-h-+\n");
   int f;
@@ -186,13 +207,13 @@ void game_state_print(const game_state* gs, FILE* file)
   fprintf(file,"%s","+-----------------+\n");
 }
 
-void game_state_init(game_state* gs)
+void game_state_init(struct game_state* gs)
 {
   board_init(&gs->discs);
   gs->turn = 0;
 }
 
-void game_state_update_turn(game_state* gs)
+void game_state_update_turn(struct game_state* gs)
 {
   gs->turn = 1 - gs->turn;
   if(board_has_valid_moves(&gs->discs)){
@@ -205,7 +226,7 @@ void game_state_update_turn(game_state* gs)
   game_state_switch_turn(gs); 
 }
 
-void game_state_switch_turn(game_state* gs)
+void game_state_switch_turn(struct game_state* gs)
 {
   board_switch_turn(&gs->discs);
   gs->turn = 1 - gs->turn;

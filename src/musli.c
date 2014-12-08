@@ -11,7 +11,7 @@
 
 
 int main(int argc,char** argv){
-  main_window mw;
+  struct main_window mw;
   gtk_init(&argc,&argv);
   main_window_init(&mw);  
   arg_parse(argc,(const char**)argv,&mw.config);

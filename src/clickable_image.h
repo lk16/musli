@@ -4,17 +4,20 @@
 
 #include "game_config.h"
 
-struct game_config;
+enum{
+  LEFT_BUTTON = 1,
+  RIGHT_BUTTON = 3
+};
 
-typedef struct clickable_image{
+struct clickable_image{
   GtkWidget* image;
   GtkWidget* ebox;
   int index;
-  game_config* gc;
-} clickable_image;
+  struct game_config* gc;
+};
 
 void clickable_image_init(
-  clickable_image* ci,
+  struct clickable_image* ci,
   const char* file,
   int index,
   struct game_config* gc
@@ -23,5 +26,5 @@ void clickable_image_init(
 void clickable_image_on_click(
   GtkWidget *widget,
   GdkEvent* event,
-  clickable_image* callback_data
+  struct clickable_image* callback_data
 );
