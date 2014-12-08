@@ -4,8 +4,6 @@
 
 #include "board.h"
 #include "bot_stats.h"
-#include "macros.h"
-#include "hash_table.h"
 #include "pvs_helper.h"
 
 struct bot_moves{

@@ -43,6 +43,8 @@ add_library(musli STATIC
   hash_table.c
   pvs_helper.c
   player_name.c
+  bot_random.c
+  bot_least.c
 )
 
 add_executable(../debug

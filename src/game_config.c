@@ -232,6 +232,11 @@ void game_state_switch_turn(struct game_state* gs)
   gs->turn = 1 - gs->turn;
 }
 
+void game_config_set_bot(struct game_config* gc, int colour, int depth, int perfect_depth)
+{
+  assert(colour==0 || colour==1);
+  player_init(&gc->players[colour],gc->bot_type,depth,perfect_depth);
+}
 
 
 

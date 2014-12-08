@@ -69,3 +69,5 @@ void game_config_console_main(struct game_config* gc);
 int game_config_test_ended(const struct game_config* gc);
 
 void game_config_process_click(struct game_config* gc, int index,int button);
+
+void game_config_set_bot(struct game_config* gc,int color,int depth,int perfect_depth);

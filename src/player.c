@@ -7,7 +7,12 @@ void player_init(struct player* p,enum player_type type, int depth, int perfect_
     case PLAYER_BOT_MOVES:
       bot_moves_init(&p->moves);
       break;
-    case PLAYER_HUMAN:
+    case PLAYER_BOT_RANDOM:
+      bot_random_init(&p->random);
+      break;
+    case PLAYER_BOT_LEAST:
+      bot_least_init(&p->least);
+      break;
     default:
       break;
   }
@@ -24,6 +29,11 @@ void player_do_move(struct player* p, const struct board* b,struct board* res)
     case PLAYER_BOT_MOVES:
       bot_moves_do_move(&p->moves,b,res);
       break;
+    case PLAYER_BOT_RANDOM:
+      bot_random_do_move(&p->random,b,res);
+      break;
+    case PLAYER_BOT_LEAST:
+      bot_least_do_move(&p->least,b,res);
     default:
       (void)0;
   }
@@ -36,14 +46,9 @@ void player_set_level(struct player* p, int depth, int perfect_depth)
       break;
     case PLAYER_BOT_MOVES:
       bot_moves_set_level(&p->moves,depth,perfect_depth);
+    case PLAYER_BOT_LEAST:
+      bot_least_set_level(&p->least,depth,perfect_depth);
     default:
       break;
   }
-}
-
-enum player_type player_type_get(const char* str)
-{
-  if(!strcmp(str,"human")) return PLAYER_HUMAN;
-  if(!strcmp(str,"moves")) return PLAYER_BOT_MOVES;
-  return PLAYER_NOT_FOUND;
 }

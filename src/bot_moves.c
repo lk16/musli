@@ -4,11 +4,6 @@ int bot_moves_heuristic(const struct board* b)
 {
   int res = 0;
   int n_discs = uint64_count(b->me | b->opp);
-  if(n_discs<30){
-    const uint64_t border_mask = 0xFF818181818181FF;
-    res -= (border_mask & b->me);
-    res += (border_mask & b->opp);
-  }
   int me_move_count = board_count_moves(b);
   int opp_move_count = board_count_opponent_moves(b);
   if(me_move_count==0 && opp_move_count==0){
@@ -22,7 +17,6 @@ int bot_moves_heuristic(const struct board* b)
       - uint64_count(b->opp & 0x8100000000000081)
   );
   return res;
-  return 0;
 }
 
 void bot_moves_init(struct bot_moves* bot)

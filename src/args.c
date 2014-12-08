@@ -3,7 +3,8 @@
 static const struct musli_arg musli_arg_list[] = {
   {"-lb",arg_set_black_level},
   {"-lw",arg_set_white_level},
-  {"-setup",arg_set_type_setup}
+  {"-setup",arg_set_type_setup},
+  {"--bot-type",arg_set_bot_type}
 };
 
 void arg_parse(int argc, const char** argv,struct game_config* gc)
@@ -48,12 +49,7 @@ int arg_set_level(struct game_config* gc, const struct parse_state* ps, int colo
     && (sscanf(ps->argv[ps->index + 1],"%d",&d) == 1)
     && (sscanf(ps->argv[ps->index + 2],"%d",&pd) == 1)
   ){
-    if(gc->players[colour].type == PLAYER_HUMAN){
-      player_init(&gc->players[colour],PLAYER_DEFAULT_BOT,d,pd);
-    }
-    else{
-      player_set_level(&gc->players[colour],d,pd);
-    }
+    game_config_set_bot(gc,colour,d,pd);
     return 3;
   }
   return MUSLI_ARG_PARSE_ERROR;
