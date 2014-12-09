@@ -41,8 +41,9 @@ void game_config_process_click(struct game_config* gc, int index,int button)
   
   switch(gc->type){
     case GAME_TYPE_MATCH:{
-      if(button != LEFT_BUTTON){
-        return;
+      if(button == RIGHT_BUTTON){
+        game_config_undo_move(gc);
+        break;
       }
       if(player_to_move->type != PLAYER_HUMAN){
         return;
@@ -50,10 +51,9 @@ void game_config_process_click(struct game_config* gc, int index,int button)
       if(!board_is_valid_move(&state->discs,index)){
         return;
       }
-      *(state+1) = *state;
-      board_do_move(&((state+1)->discs),index);
-      game_state_update_turn(state+1);
-      gc->current = gc->redo_max = gc->current + 1;
+      struct board child = state->discs;
+      board_do_move(&child,index);
+      game_config_on_any_move(gc,&child);
     }
     break;
     case GAME_TYPE_SETUP:{
@@ -99,30 +99,51 @@ int game_config_timeout(struct game_config* gc)
     if(p->type != PLAYER_HUMAN){
       struct game_state* s = game_config_get_state(gc);
       if(!board_test_game_ended(&s->discs)){
-        player_do_move(p,&s->discs,&((s+1)->discs));
-        (s+1)->turn = s->turn; 
-        game_state_update_turn(s+1);
-        gc->current = gc->redo_max = gc->current + 1;
-        game_config_show_updated_field(gc);
+        struct board child;
+        player_do_move(p,&s->discs,&child);
+        game_config_on_any_move(gc,&child);
       }
     }
   }
   return G_SOURCE_CONTINUE;
 }
 
+void game_config_on_any_move(struct game_config* gc,const struct board* child)
+{
+  struct game_state* s = game_config_get_state(gc);
+  (s+1)->discs = *child;
+  (s+1)->turn = s->turn; 
+  game_state_update_turn(s+1);
+  gc->current = gc->redo_max = gc->current + 1;
+  game_config_show_updated_field(gc);
+  if(board_test_game_ended(&(s+1)->discs)){
+    game_config_on_ended(gc);
+  }
+}
+
 
 
 void game_config_redo_move(struct game_config* gc)
 {
-  if(gc->current <= gc->redo_max){
-    gc->current++;
+  int cur = gc->current + 1;
+  while(cur < gc->redo_max){
+    if(gc->players[gc->history[cur].turn].type == PLAYER_HUMAN){
+      gc->current = cur;
+      return;
+    }
+    cur++;
   }
 }
 
 void game_config_undo_move(struct game_config* gc)
 {
-  if(gc->current >= 0){
-    gc->current--;
+  int cur = gc->current -1;
+  while(cur >= 0){
+    if(gc->players[gc->history[cur].turn].type == PLAYER_HUMAN){
+      gc->current = cur;
+      return;
+    }
+    cur--;
   }
 }
 
@@ -131,8 +152,8 @@ void game_config_on_ended(const struct game_config* gc)
   printf("%s","Game over!\n");
   const struct game_state* s = game_config_get_state_const(gc);
   int count[2];
-  count[0] = s->turn ? s->discs.opp : s->discs.me;
-  count[1] = s->turn ? s->discs.me : s->discs.opp;
+  count[0] = uint64_count(s->turn ? s->discs.opp : s->discs.me);
+  count[1] = uint64_count(s->turn ? s->discs.me : s->discs.opp);
   if(count[0] > count[1]){
     printf("Black wins: %d - %d\n",count[0],count[1]);
   }

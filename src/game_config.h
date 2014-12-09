@@ -49,13 +49,12 @@ struct game_config{
 void game_config_init(struct game_config* gc,struct main_window* mw);
 
 void game_config_on_new_game(struct game_config* gc);
-void game_config_on_field_update(struct game_config* gc);
 void game_config_on_ended(const struct game_config* gc);
+void game_config_on_any_move(struct game_config* gc,const struct board* child);
 
 struct game_state* game_config_get_state(struct game_config* gc);
 const struct game_state* game_config_get_state_const(const struct game_config* gc);
 void game_config_show_updated_field(const struct game_config* gc);
-void game_config_after_move(struct game_config* gc);
 
 struct player* game_config_get_player_to_move(struct game_config* gc);
 
@@ -65,8 +64,6 @@ void game_config_undo_move(struct game_config* gc);
 void game_config_redo_move(struct game_config* gc);
 
 void game_config_console_main(struct game_config* gc);
-
-int game_config_test_ended(const struct game_config* gc);
 
 void game_config_process_click(struct game_config* gc, int index,int button);
 
