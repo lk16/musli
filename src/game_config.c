@@ -116,6 +116,9 @@ void game_config_on_any_move(struct game_config* gc,const struct board* child)
   game_state_update_turn(s+1);
   gc->current = gc->redo_max = gc->current + 1;
   game_config_show_updated_field(gc);
+  if(gc->players[0].type!=PLAYER_HUMAN && gc->players[1].type!=PLAYER_HUMAN){
+    game_state_print(s+1,stdout);
+  }
   if(board_test_game_ended(&(s+1)->discs)){
     game_config_on_ended(gc);
   }

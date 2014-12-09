@@ -1,12 +1,14 @@
 #include "pvs_helper.h"
 
-void pvs_helper_init(struct pvs_helper* bot,int(*heur_func)(const struct board*))
+void pvs_helper_init(struct pvs_helper* bot,int(*heur_func)(const struct board*),
+                     const char* name)
 {
   bot_stats_init(&bot->stats);
   bot->out = stdout;
   bot->name = "moves";
   hash_table_init(&bot->table);
   bot->heuristic = heur_func;
+  bot->name = name;
 }
 
 
@@ -146,13 +148,27 @@ int pvs_helper_pvs_sorted(struct pvs_helper* bot,int alpha, int beta)
     return heur;
   }
     
-  struct board children[32]; 
-  int child_count = board_get_children(&bot->inspected,children) - children;
+  struct board_with_heur children[32]; 
+  int child_count = board_get_children_with_heur(&bot->inspected,children) - children;
+  {
+    int moves_left = 4;
+    struct board inspected;
+    generic_swap(moves_left,bot->moves_left);
+    for(int i=0;i<child_count;i++){
+      inspected = children[i].b;
+      generic_swap(inspected,bot->inspected);
+      children[i].heur = -pvs_helper_pvs_unsorted(bot,MIN_HEURISTIC,MAX_HEURISTIC);
+      generic_swap(inspected,bot->inspected);
+    }
+    qsort(children,child_count,sizeof(struct board_with_heur),board_with_heur_compare);
+    generic_swap(moves_left,bot->moves_left);
+  }
+  
   
   int score;
     
-  for(int i=0;i<child_count;i++){
-    generic_swap(bot->inspected,children[i]);
+  for(int i=child_count-1;i>=0;i--){
+    generic_swap(bot->inspected,children[i].b);
     bot->moves_left--;
     if(i==0){
       score = -pvs_helper_pvs_sorted(bot,-beta,-alpha);
@@ -165,7 +181,7 @@ int pvs_helper_pvs_sorted(struct pvs_helper* bot,int alpha, int beta)
     }
     
     bot->moves_left++;
-    generic_swap(bot->inspected,children[i]);
+    generic_swap(bot->inspected,children[i].b);
     
     if(score >= beta){
       alpha = beta;

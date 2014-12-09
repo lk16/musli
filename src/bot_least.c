@@ -12,7 +12,7 @@ int bot_least_heuristic(const struct board* b)
 
 void bot_least_init(struct bot_least* bot)
 {
-  pvs_helper_init(&bot->pvs,bot_least_heuristic);
+  pvs_helper_init(&bot->pvs,bot_least_heuristic,"least");
 }
 
 void bot_least_set_level(struct bot_least* bot, int depth, int perfect_depth)

@@ -439,9 +439,7 @@ uint64_t board_do_move(struct board* b,int move){
 
 void board_switch_turn(struct board* b)
 {
-  uint64_t tmp = b->opp;
-  b->opp = b->me;
-  b->me = tmp;
+  generic_swap(b->me,b->opp);
 }
 
 int board_count_moves(const struct board* b)
@@ -479,13 +477,16 @@ int board_get_disc_diff(const struct board* b)
 }
 
 struct board* board_get_children(const struct board* b, struct board* out)
-{
+{ 
   struct board* out_end = out;
   uint64_t valid_moves =  board_get_moves(b);
-  
+  int i;
+  for(i=0;i<32;i++){
+    out[i] = *b;
+  }
   while(valid_moves != 0ull){
     int move_id = uint64_find_first(valid_moves);
-    *out_end = *b;
+    //*out_end = *b;
     board_do_move(out_end,move_id);
     out_end++;
     valid_moves &= uint64_reset[move_id]; 
@@ -522,7 +523,7 @@ void board_do_random_moves(struct board* b, int n)
 {
   struct board children[32];
   struct board* child_end;
-  while(n!=0){
+  for(int i=0;i<n;i++){
     if(board_test_game_ended(b)){
       break;
     }
@@ -532,6 +533,71 @@ void board_do_random_moves(struct board* b, int n)
       child_end = board_get_children(b,children);
     }
     *b = children[rand() % (child_end-children)];
-    n--;
   }
+}
+
+int board_is_child(const struct board* b,const struct board* child)
+{
+  struct board children[32];
+  struct board* child_end;
+  int i;
+  child_end = board_get_children(b,children);
+  for(i=0;i<(child_end-children);i++){
+    if(board_equals(child,children+i)){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+struct board_with_heur* board_get_children_with_heur(const struct board* b,
+                                                     struct board_with_heur* out)
+{
+  struct board_with_heur* out_end = out;
+  uint64_t valid_moves =  board_get_moves(b);
+  while(valid_moves != 0ull){
+    int move_id = uint64_find_first(valid_moves);
+    out_end->b = *b;
+    out_end->heur = 0;
+    board_do_move(&out_end->b,move_id);
+    out_end++;
+    valid_moves &= uint64_reset[move_id]; 
+  }
+  return out_end;
+}
+
+int board_with_heur_compare(const void* lhs, const void* rhs)
+{
+  return ((struct board_with_heur*)lhs)->heur - ((struct board_with_heur*)rhs)->heur;
+}
+
+void board_print(const struct board* b, FILE* file,int turn)
+{
+  fprintf(file,"%s","+-a-b-c-d-e-f-g-h-+\n");
+  int f;
+  uint64_t moves,white,black;
+  moves = board_get_moves(b);
+  black = turn ? b->me : b->opp;
+  white = turn ? b->opp : b->me;
+  for(f=0;f<64;f++){
+    if(f%8 == 0){
+      fprintf(file,"%d ",(f/8)+1);
+    }
+    if(white & (1ull << f)){
+      fprintf(file,"%s","\033[31;1m\u2B24\033[0m ");
+    }
+    else if(black & (1ull << f)){
+      fprintf(file,"%s","\033[34;1m\u2B24\033[0m ");
+    }
+    else if(moves & (1ull << f)){
+      fprintf(file,"%s", "- ");
+    }  
+    else{
+      fprintf(file,"%s","  ");
+    }
+    if(f%8 == 7){
+      fprintf(file,"%s","|\n");
+    }
+  }
+  fprintf(file,"%s","+-----------------+\n");
 }

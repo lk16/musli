@@ -52,3 +52,17 @@ void player_set_level(struct player* p, int depth, int perfect_depth)
       break;
   }
 }
+
+void player_redirect_output(struct player* p, FILE* out)
+{
+  switch(p->type){
+    case PLAYER_HUMAN:
+      break;
+    case PLAYER_BOT_MOVES:
+      p->moves.pvs.out = out;
+    case PLAYER_BOT_LEAST:
+      p->least.pvs.out = out;
+    default:
+      break;
+  }
+}

@@ -13,10 +13,15 @@ struct board{
   uint64_t me,opp;
 };
 
+struct board_with_heur{
+  struct board b;
+  int heur;
+};
+
+int board_with_heur_compare(const void* lhs,const void* rhs);
+
 void board_init(struct board* b);
 void board_clear(struct board* b);
-
-//void board_print(const board* b,FILE* file,int turn);
 
 
 uint64_t board_do_move(struct board* b,int move);
@@ -37,9 +42,14 @@ int board_test_game_ended(const struct board* b);
 void board_switch_turn(struct board* b);
 
 struct board* board_get_children(const struct board* b,struct board* out);
+struct board_with_heur* board_get_children_with_heur(const struct board* b,struct board_with_heur* out);
 
 int board_only_similar_siblings(const struct board* children,int size);
 
 int board_equals(const struct board* lhs,const struct board* rhs);
 
 void board_do_random_moves(struct board* b,int n);
+
+int board_is_child(const struct board* b,const struct board* child);
+
+void board_print(const struct board* b, FILE* file,int turn);

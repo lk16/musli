@@ -20,7 +20,7 @@ struct pvs_helper{
   int(*heuristic)(const struct board* b);
 };
 
-void pvs_helper_init(struct pvs_helper* bot,int(*)(const struct board*));
+void pvs_helper_init(struct pvs_helper* bot,int(*)(const struct board*),const char* name);
 
 void pvs_helper_set_level(struct pvs_helper* bot,int depth,int perfect_depth);
 void pvs_helper_do_move(struct pvs_helper* bot,const struct board* b,struct board* res);

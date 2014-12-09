@@ -3,7 +3,6 @@
 int bot_moves_heuristic(const struct board* b)
 {
   int res = 0;
-  int n_discs = uint64_count(b->me | b->opp);
   int me_move_count = board_count_moves(b);
   int opp_move_count = board_count_opponent_moves(b);
   if(me_move_count==0 && opp_move_count==0){
@@ -21,7 +20,7 @@ int bot_moves_heuristic(const struct board* b)
 
 void bot_moves_init(struct bot_moves* bot)
 {
-  pvs_helper_init(&bot->pvs,bot_moves_heuristic);
+  pvs_helper_init(&bot->pvs,bot_moves_heuristic,"moves");
 }
 
 void bot_moves_set_level(struct bot_moves* bot, int depth, int perfect_depth)

@@ -4,7 +4,8 @@ static const struct musli_arg musli_arg_list[] = {
   {"-lb",arg_set_black_level},
   {"-lw",arg_set_white_level},
   {"-setup",arg_set_type_setup},
-  {"--bot-type",arg_set_bot_type}
+  {"--bot-type",arg_set_bot_type},
+  {"-r",arg_do_initial_random_moves}
 };
 
 void arg_parse(int argc, const char** argv,struct game_config* gc)
@@ -91,4 +92,20 @@ int arg_set_bot_type(struct game_config* gc, const struct parse_state* ps)
 void arg_parse_show_error(const struct parse_state* mps)
 {
   printf("Error in parsing near argument \"%s\".\n",mps->argv[mps->index]);
+}
+
+int arg_do_initial_random_moves(struct game_config* gc,const struct parse_state* ps)
+{
+  int n_moves;
+  if(arg_parse_has_enough_args(ps,2)
+    && (sscanf(ps->argv[ps->index + 1],"%d",&n_moves) == 1)
+    && (n_moves>=0)
+  ){
+    game_state_init(&gc->history[0]);
+    gc->current = gc->redo_max = 0;
+    board_do_random_moves(&gc->history[0].discs,n_moves);
+    game_config_show_updated_field(gc);
+    return 2;
+  }
+  return MUSLI_ARG_PARSE_ERROR;
 }

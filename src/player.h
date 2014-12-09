@@ -35,3 +35,4 @@ struct player{
 void player_init(struct player* p,enum player_type type,int depth, int perfect_depth);
 void player_do_move(struct player* p,const struct board* b,struct board* res);
 void player_set_level(struct player* p,int depth,int perfect_depth);
+void player_redirect_output(struct player* p,FILE* out);

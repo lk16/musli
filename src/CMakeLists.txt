@@ -39,7 +39,6 @@ add_library(musli STATIC
   human.c
   player.c
   clickable_image.c
-  args.c
   hash_table.c
   pvs_helper.c
   player_name.c
@@ -47,18 +46,21 @@ add_library(musli STATIC
   bot_least.c
 )
 
-add_executable(../debug
-  debug.c
+add_executable(../tournament
+  tournament.c
+  player_name.c
 )
 
-target_link_libraries(../debug
+target_link_libraries(../tournament
   musli
+  m
 )
 
 add_executable(../musli
   musli.c
   main_window.c
   game_config.c
+  args.c
 )
 
 target_link_libraries(../musli
