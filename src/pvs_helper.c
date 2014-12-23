@@ -5,7 +5,6 @@ void pvs_helper_init(struct pvs_helper* bot,int(*heur_func)(const struct board*)
 {
   bot_stats_init(&bot->stats);
   bot->out = stdout;
-  bot->name = "moves";
   hash_table_init(&bot->table);
   bot->heuristic = heur_func;
   bot->name = name;

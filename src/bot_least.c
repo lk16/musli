@@ -7,7 +7,11 @@ int bot_least_heuristic(const struct board* b)
   if(me_move_count==0 && opp_move_count==0){
     return 1000 * board_get_disc_diff(b);
   }
-  return uint64_count(b->opp) - uint64_count(b->me);
+  int res = 0;
+  res += uint64_count(b->opp) - uint64_count(b->me);
+  res += 3 * uint64_count(b->me & 0x8100000000000081);
+  res += -3 * uint64_count(b->opp & 0x8100000000000081);
+  return res;
 }
 
 void bot_least_init(struct bot_least* bot)

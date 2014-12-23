@@ -5,6 +5,7 @@
 
 #include "game_config.h"
 #include "player_name.h"
+#include "svg_helper.h"
 
 enum{
   MUSLI_ARG_PARSE_ERROR = -1
@@ -39,3 +40,4 @@ int arg_set_white_level(struct game_config* gc,const struct parse_state* ps);
 int arg_set_bot_type(struct game_config* gc,const struct parse_state* ps);
 int arg_set_type_setup(struct game_config* gc,const struct parse_state* ps);
 int arg_do_initial_random_moves(struct game_config* gc,const struct parse_state* ps);
+int arg_run_svg_test(struct game_config* gc,const struct parse_state* ps);

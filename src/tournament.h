@@ -27,7 +27,7 @@ struct tournament{
   struct entrant entrants[MAX_TOURNAMENT_ENTRANTS];
 };
 
-enum game_result play_othello_game(struct player* black,struct player* white);
+enum game_result play_othello_game(struct board b,struct player* black,struct player* white);
 
 void entrant_update_rating(struct entrant* black,struct entrant* white,enum game_result res);
 

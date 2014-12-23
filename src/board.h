@@ -53,3 +53,7 @@ void board_do_random_moves(struct board* b,int n);
 int board_is_child(const struct board* b,const struct board* child);
 
 void board_print(const struct board* b, FILE* file,int turn);
+
+uint64_t uint64_get_stable(uint64_t bits);
+
+void uint64_print(uint64_t x,FILE* file);

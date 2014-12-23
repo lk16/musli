@@ -5,7 +5,8 @@ static const struct musli_arg musli_arg_list[] = {
   {"-lw",arg_set_white_level},
   {"-setup",arg_set_type_setup},
   {"--bot-type",arg_set_bot_type},
-  {"-r",arg_do_initial_random_moves}
+  {"-r",arg_do_initial_random_moves},
+  {"-svgtest",arg_run_svg_test}
 };
 
 void arg_parse(int argc, const char** argv,struct game_config* gc)
@@ -108,4 +109,20 @@ int arg_do_initial_random_moves(struct game_config* gc,const struct parse_state*
     return 2;
   }
   return MUSLI_ARG_PARSE_ERROR;
+}
+
+int arg_run_svg_test(struct game_config* gc,const struct parse_state* ps)
+{
+  (void)gc;
+  (void)ps;
+  FILE* test = fopen("test.svg","w");
+  struct game_state gs;
+  game_state_init(&gs);
+  struct svg_game_state_tree* tree;
+  int depth = 5;
+  tree = svg_game_state_tree_generate(&gs,depth);
+  svg_game_state_tree_print(test,tree,depth);
+  fclose(test);
+  exit(0); // ugly
+  return 1;
 }

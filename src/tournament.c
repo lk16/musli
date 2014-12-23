@@ -26,31 +26,37 @@ void play_tournament(struct tournament* t)
     }
     for(i=0;i<(t->num_entrants/2);i++){
       enum game_result res;
-      res = play_othello_game(&pairs[i][0]->p,&pairs[i][1]->p);
+      struct board b;
+      board_init(&b);
+      board_do_random_moves(&b,5);
+      res = play_othello_game(b,&pairs[i][0]->p,&pairs[i][1]->p);
       entrant_update_rating(pairs[i][0],pairs[i][1],res);
+      // play same board different colour
+      res = play_othello_game(b,&pairs[i][1]->p,&pairs[i][0]->p);
+      entrant_update_rating(pairs[i][1],pairs[i][0],res);
+      
+      qsort(t->entrants,t->num_entrants,sizeof(struct entrant),entrant_compare);
+      show_tournament_stats(t);
+      
     }
-    qsort(t->entrants,t->num_entrants,sizeof(struct entrant),entrant_compare);
-    show_tournament_stats(t);
   }
 }
 
-enum game_result play_othello_game(struct player* black,struct player* white)
+enum game_result play_othello_game(struct board b,struct player* black,struct player* white)
 {
-  struct board b,tmp;
-  board_init(&b);
-  board_do_random_moves(&b,8);
   struct player* p[2] = {black,white};
   int turn = 0;
   while(1){
     if(!board_has_valid_moves(&b)){
+      board_switch_turn(&b);
       turn = 1-turn;
       if(!board_has_valid_moves(&b)){
+        board_switch_turn(&b);
         turn = 1-turn;
         break;
       }
     }
-    player_do_move(p[turn],&b,&tmp);
-    b = tmp;
+    player_do_move(p[turn],&b,&b);
     turn = 1-turn;
   }
   int me,opp;
@@ -119,21 +125,23 @@ void tournament_add(struct tournament* t,enum player_type type, int depth, int p
 
 
 
-
-int main(){
+int main(void){
   struct tournament t;
   t.num_entrants = 0;
   
   FILE* devnull = fopen("/dev/null","w");
   
   int i;
-  tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
-  tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
-  tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
-  for(i=1;i<=7;i++){
-    tournament_add(&t,PLAYER_BOT_MOVES,i,2*i,devnull);
+  
+  
+  tournament_add(&t,PLAYER_BOT_STABLE,6,12,devnull);
+  
+  for(i=1;i<=23;i++){
+    tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
   }
-  tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
+  
+  //tournament_add(&t,PLAYER_HUMAN,0,0,stdout);
+  
   
   play_tournament(&t);
   

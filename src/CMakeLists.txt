@@ -6,21 +6,16 @@ find_package(PkgConfig)
 
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
-set(DEBUG_FLAGS
-  "-std=c99 -I .. -pthread -Wall -Wextra -g -Wfloat-equal -Wno-unused-result -Wshadow -Wstrict-aliasing"
+set(FLAGS
+" -std=c99 -I .. -pthread -Wall -Wmissing-prototypes -Wstrict-prototypes -Wextra -Wfloat-equal -Wno-unused-result -Wshadow -Wstrict-aliasing -pipe"
 )
 
-set(OPTIMIZED_DEBUG_FLAGS
-  "-std=c99 -I .. -pthread -Wall -Wextra -g -DNDEBUG -O2 -pipe -msse2 -fforce-addr -ftree-vectorize -funroll-loops" 
-)
 
-set(OPTIMIZING_FLAGS
-  "-std=c99 -I .. -pthread -Wall -Wextra -DNDEBUG -O3 -pipe -msse2 -fforce-addr -ftree-vectorize -funroll-loops" 
-)
+set(DEBUG_FLAGS "${FLAGS} -g")
+set(OPTMISING_FLAGS "${FLAGS} -O3 -fforce-addr -ftree-vectorize -funroll-loops")
 
 set(CMAKE_C_FLAGS 
-  ${OPTIMIZING_FLAGS}
-  #${OPTIMIZED_DEBUG_FLAGS}
+  ${OPTMISING_FLAGS}
   #${DEBUG_FLAGS}
 ) 
 
@@ -44,6 +39,8 @@ add_library(musli STATIC
   player_name.c
   bot_random.c
   bot_least.c
+  bot_stable.c
+  svg_helper.c
 )
 
 add_executable(../tournament

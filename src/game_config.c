@@ -164,7 +164,7 @@ void game_config_on_ended(const struct game_config* gc)
     printf("White wins: %d - %d\n",count[1],count[0]);
   }
   else{
-    printf("Draw: %d - %d",count[0],count[1]);
+    printf("Draw: %d - %d\n",count[0],count[1]);
   }
 }
 
@@ -262,5 +262,26 @@ void game_config_set_bot(struct game_config* gc, int colour, int depth, int perf
   player_init(&gc->players[colour],gc->bot_type,depth,perfect_depth);
 }
 
+struct game_state* game_state_get_children(const struct game_state* gs,struct game_state* out)
+{
+  struct board children[32];
+  struct board* end = board_get_children(&gs->discs,children);
+  if(end==children){
+    struct game_state copy = *gs;
+    game_state_switch_turn(&copy);
+    if(board_has_valid_moves(&copy.discs)){
+      return game_state_get_children(&copy,out);
+    }
+    return out;
+  }
+  struct game_state* out_end = out;
+  struct board* it;
+  for(it=children;it!=end;it++){
+    out_end->discs = *it;
+    out_end->turn = 1 - gs->turn;
+    out_end++;
+  }
+  return out_end;
+}
 
 

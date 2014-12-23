@@ -32,4 +32,3 @@ void bot_moves_do_move(struct bot_moves* bot, const struct board* b,struct board
 {
   pvs_helper_do_move(&bot->pvs,b,res);
 }
-

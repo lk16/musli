@@ -32,6 +32,7 @@ void game_state_init(struct game_state* gs);
 void game_state_update_turn(struct game_state* gs);
 void game_state_print(const struct game_state* gs,FILE* file);
 void game_state_switch_turn(struct game_state* gs);
+struct game_state* game_state_get_children(const struct game_state* gs,struct game_state* out);
 
 struct main_window;
 void main_window_update_fields(struct main_window*,const struct game_state*);

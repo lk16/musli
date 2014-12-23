@@ -8,17 +8,17 @@ long long unsigned int hash_of_board(const struct board* b)
 
 void hash_table_init(struct hash_table* ht)
 {
-  int i;
+  unsigned i;
   ht->buckets =  (struct hash_table_elem**)malloc(
     HASH_TABLE_BUCKETS*sizeof(struct hash_table_elem*));
   ht->unused = (struct hash_table_elem*)malloc(
     HASH_TABLE_MAX_ELEMS*sizeof(struct hash_table_elem));
-  ht->unused_start = ht->unused;
-  for(i=0;i<(int)HASH_TABLE_BUCKETS;i++){
+  ht->elems_begin = ht->unused;
+  for(i=0;i<HASH_TABLE_BUCKETS;i++){
     ht->buckets[i] = NULL;
   }
-  for(i=0;i<(int)HASH_TABLE_MAX_ELEMS-1;i++){
-    ht->unused[i].next = &(ht->unused[i+1]);
+  for(i=0;i<HASH_TABLE_MAX_ELEMS-1;i++){
+    ht->unused[i].next = ht->unused + i + 1;
   }
   ht->unused[HASH_TABLE_MAX_ELEMS-1].next = NULL;
 }
@@ -56,7 +56,7 @@ struct hash_table_value* hash_table_find(struct hash_table* ht, const struct boa
 
 void hash_table_init_free(struct hash_table* ht)
 {
-  free(ht->unused_start);
+  free(ht->elems_begin);
   free(ht->buckets);
 }
 

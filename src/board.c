@@ -104,7 +104,8 @@ uint64_t board_get_moves(const struct board* b)
 {
   uint64_t res = 0ull;
   
-  for(int d=4;d<8;d++){
+  int d;
+  for(d=4;d<8;d++){
     res |= 
     (
     ((b->opp >> board_walk_diff[d][0]) & board_walk_possible[d][0]) 
@@ -208,7 +209,8 @@ int board_count_opponent_moves(const struct board* b)
 {
   uint64_t res = 0ull;
   
-  for(int d=4;d<8;d++){
+  int d;
+  for(d=4;d<8;d++){
     res |= 
     (
     ((b->me >> board_walk_diff[d][0]) & board_walk_possible[d][0]) 
@@ -523,7 +525,8 @@ void board_do_random_moves(struct board* b, int n)
 {
   struct board children[32];
   struct board* child_end;
-  for(int i=0;i<n;i++){
+  int i;
+  for(i=0;i<n;i++){
     if(board_test_game_ended(b)){
       break;
     }
@@ -600,4 +603,237 @@ void board_print(const struct board* b, FILE* file,int turn)
     }
   }
   fprintf(file,"%s","+-----------------+\n");
+}
+
+void uint64_print(uint64_t x, FILE* file)
+{
+  fprintf(file,"%s","+-a-b-c-d-e-f-g-h-+\n");
+  int f;
+  for(f=0;f<64;f++){
+    if(f%8 == 0){
+      fprintf(file,"%d ",(f/8)+1);
+    }
+    fprintf(file,"%c ",(x & uint64_set[f]) ? '@' : ' ' );
+    if(f%8 == 7){
+      fprintf(file,"%s","|\n");
+    }
+  }
+  fprintf(file,"%s","+-----------------+\n");
+}
+
+
+uint64_t uint64_get_stable(uint64_t input)
+{
+  uint64_t stable = 0ull;
+  int i,j;
+
+  static const int diagonal_tables[4][8][8] = 
+  {
+    {
+      {0},
+      {1, 8},
+      {2, 9,16},
+      {3,10,17,24},
+      {4,11,18,25,32},
+      {5,12,19,26,33,40},
+      {6,13,20,27,34,41,48},
+      {7,14,21,28,35,42,49,56}
+    },
+    { 
+      {7},
+      {6,15},
+      {5,14,23},
+      {4,13,22,31},
+      {3,12,21,30,39},
+      {2,11,20,29,38,47},
+      {1,10,19,28,37,46,55},
+      {0, 9,18,27,36,45,54,63}
+    },
+    { 
+      {56},
+      {48,57},
+      {40,49,58},
+      {32,41,50,59},
+      {24,33,42,51,60},
+      {16,25,34,43,52,61},
+      { 8,17,26,35,44,53,62},
+      { 0, 9,18,27,36,45,54,63}
+    },
+    { 
+      {63},
+      {55,62},
+      {47,54,61},
+      {39,46,53,60},
+      {31,38,45,52,59},
+      {23,30,37,44,51,58},
+      {15,22,29,36,43,50,57},
+      { 7,14,21,28,35,42,49,56}
+    }
+  };
+  
+  uint64_t bit;
+  for(i=0;i<8;i++){
+    for(j=0;j<i+1;j++){
+      bit = uint64_set[diagonal_tables[0][i][j]];
+      if(bit & input){
+        if(bit & 0x00000000000001){
+          stable |= 0x00000000000001;
+        }
+        else if(bit & 0x01010101010100){
+          stable |= (bit & (stable << 8));
+        }
+        else if(bit & (stable << 1)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=i;j>=0;j--){
+      bit = uint64_set[diagonal_tables[0][i][j]];
+      if(bit & input){
+        if(bit & 0x0000000000000001){
+          stable |= 0x0000000000000001;
+        }
+        else if(bit & 0x00000000000000FE){
+          stable |= (bit & (stable << 1));
+        }
+        else if(bit & (stable << 8)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=0;j<i+1;j++){
+      bit = uint64_set[diagonal_tables[1][i][j]];
+      if(bit & input){
+        if(bit & 0x0000000000000080){
+          stable |= 0x0000000000000080;
+        }
+        else if(bit & 0x8080808080808000){
+          stable |= (bit & (stable << 8));
+        }
+        else if(bit & (stable >> 1)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=i;j>=0;j--){
+      bit = uint64_set[diagonal_tables[1][i][j]];
+      if(bit & input){
+        if(bit & 0x0000000000000080){
+          stable |= 0x0000000000000080;
+        }
+        else if(bit & 0x000000000000007F){
+          stable |= (bit & (stable >> 1));
+        }
+        else if(bit & (stable << 8)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=0;j<i+1;j++){
+      bit = uint64_set[diagonal_tables[2][i][j]];
+      if(bit & input){
+        if(bit & 0x0100000000000000){
+          stable |= 0x0100000000000000;
+        }
+        else if(bit & 0xFE00000000000000){
+          stable |= (bit & (stable << 1));
+        }
+        else if(bit & (stable >> 8)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=i;j>=0;j--){
+      bit = uint64_set[diagonal_tables[2][i][j]];
+      if(bit & input){
+        if(bit & 0x0100000000000000){
+          stable |= 0x0100000000000000;
+        }
+        else if(bit & 0x0001010101010101){
+          stable |= (bit & (stable >> 8));
+        }
+        else if(bit & (stable << 1)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=0;j<i+1;j++){
+      bit = uint64_set[diagonal_tables[3][i][j]];
+      if(bit & input){
+        if(bit & 0x8000000000000000){
+          stable |= 0x8000000000000000;
+        }
+        else if(bit & 0x7F00000000000000){
+          stable |= (bit & (stable >> 1));
+        }
+        else if(bit & (stable >> 8)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+    for(j=i;j>=0;j--){
+      bit = uint64_set[diagonal_tables[3][i][j]];
+      if(bit & input){
+        if(bit & 0x8000000000000000){
+          stable |= 0x8000000000000000;
+        }
+        else if(bit & 0x0080808080808080){
+          stable |= (bit & (stable >> 8));
+        }
+        else if(bit & (stable >> 1)){
+          stable |= bit;
+        }
+        else{
+          break;
+        }
+      }
+      else{
+        break;
+      }
+    }
+  }
+  
+  return stable;
 }

@@ -5,6 +5,7 @@ void human_do_move(struct human* h, const struct board* b,struct board* res)
   (void)h;
   const int input_size = 4;
   char input[input_size];
+  board_print(b,stdout,0);
   while(1){
     printf("%s","Enter a move: ");
     fgets(input,input_size,stdin);

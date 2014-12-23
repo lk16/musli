@@ -2,6 +2,11 @@
 
 void player_init(struct player* p,enum player_type type, int depth, int perfect_depth)
 {
+  if(depth<=0 || depth>60 || perfect_depth<=0 || perfect_depth>60){
+    printf("Player init error: (d,pd) = (%d,%d)\n",depth,perfect_depth);
+    exit(1);
+  }
+  
   p->type = type;
   switch(type){
     case PLAYER_BOT_MOVES:
@@ -13,6 +18,8 @@ void player_init(struct player* p,enum player_type type, int depth, int perfect_
     case PLAYER_BOT_LEAST:
       bot_least_init(&p->least);
       break;
+    case PLAYER_BOT_STABLE:
+      bot_stable_init(&p->stable);
     default:
       break;
   }
@@ -34,6 +41,9 @@ void player_do_move(struct player* p, const struct board* b,struct board* res)
       break;
     case PLAYER_BOT_LEAST:
       bot_least_do_move(&p->least,b,res);
+      break;
+    case PLAYER_BOT_STABLE:
+      bot_stable_do_move(&p->stable,b,res);
     default:
       (void)0;
   }
@@ -46,8 +56,12 @@ void player_set_level(struct player* p, int depth, int perfect_depth)
       break;
     case PLAYER_BOT_MOVES:
       bot_moves_set_level(&p->moves,depth,perfect_depth);
+      break;
     case PLAYER_BOT_LEAST:
       bot_least_set_level(&p->least,depth,perfect_depth);
+      break;
+    case PLAYER_BOT_STABLE:
+      bot_stable_set_level(&p->stable,depth,perfect_depth);
     default:
       break;
   }
@@ -62,6 +76,8 @@ void player_redirect_output(struct player* p, FILE* out)
       p->moves.pvs.out = out;
     case PLAYER_BOT_LEAST:
       p->least.pvs.out = out;
+    case PLAYER_BOT_STABLE:
+      p->stable.pvs.out = out;
     default:
       break;
   }

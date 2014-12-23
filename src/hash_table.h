@@ -21,7 +21,7 @@ struct hash_table_elem{
 
 struct hash_table{
   struct hash_table_elem** buckets;
-  struct hash_table_elem *unused,*unused_start;
+  struct hash_table_elem *unused,*elems_begin;
 };
 
 
@@ -30,7 +30,9 @@ unsigned long long hash_of_board(const struct board* b);
 void hash_table_init(struct hash_table* ht);
 void hash_table_init_free(struct hash_table* ht);
 
-int hash_table_add(struct hash_table* ht,const struct board* key,const struct hash_table_value* value);
+int hash_table_add(struct hash_table* ht,const struct board* key,
+                   const struct hash_table_value* value);
+
 void hash_table_clear(struct hash_table* ht);
 
 struct hash_table_value* hash_table_find(struct hash_table* ht,const struct board* key);
