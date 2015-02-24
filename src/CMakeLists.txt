@@ -41,6 +41,8 @@ add_library(musli STATIC
   bot_least.c
   bot_stable.c
   svg_helper.c
+  bot_most.c
+  testmm.c
 )
 
 add_executable(../tournament

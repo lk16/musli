@@ -41,3 +41,4 @@ int arg_set_bot_type(struct game_config* gc,const struct parse_state* ps);
 int arg_set_type_setup(struct game_config* gc,const struct parse_state* ps);
 int arg_do_initial_random_moves(struct game_config* gc,const struct parse_state* ps);
 int arg_run_svg_test(struct game_config* gc,const struct parse_state* ps);
+int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps);

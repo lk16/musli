@@ -4,7 +4,8 @@ const struct player_name_table_row player_name_table[] = {
   {"moves",PLAYER_BOT_MOVES},
   {"random",PLAYER_BOT_RANDOM},
   {"least",PLAYER_BOT_LEAST},
-  {"stable",PLAYER_BOT_STABLE}
+  {"stable",PLAYER_BOT_STABLE},
+  {"most",PLAYER_BOT_MOST}
 };
 
 enum player_type player_name_to_type(const char* name)
