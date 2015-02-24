@@ -20,6 +20,10 @@ void player_init(struct player* p,enum player_type type, int depth, int perfect_
       break;
     case PLAYER_BOT_STABLE:
       bot_stable_init(&p->stable);
+      break;
+    case PLAYER_BOT_MOST:
+      bot_most_init(&p->most);
+      break;
     default:
       break;
   }
@@ -44,6 +48,10 @@ void player_do_move(struct player* p, const struct board* b,struct board* res)
       break;
     case PLAYER_BOT_STABLE:
       bot_stable_do_move(&p->stable,b,res);
+      break;
+    case PLAYER_BOT_MOST:
+      bot_most_do_move(&p->most,b,res);
+      break;
     default:
       (void)0;
   }
@@ -62,6 +70,9 @@ void player_set_level(struct player* p, int depth, int perfect_depth)
       break;
     case PLAYER_BOT_STABLE:
       bot_stable_set_level(&p->stable,depth,perfect_depth);
+      break;
+    case PLAYER_BOT_MOST:
+      bot_most_set_level(&p->most,depth,perfect_depth);
     default:
       break;
   }
@@ -74,10 +85,16 @@ void player_redirect_output(struct player* p, FILE* out)
       break;
     case PLAYER_BOT_MOVES:
       p->moves.pvs.out = out;
+      break;
     case PLAYER_BOT_LEAST:
       p->least.pvs.out = out;
+      break;
     case PLAYER_BOT_STABLE:
       p->stable.pvs.out = out;
+      break;
+    case PLAYER_BOT_MOST:
+      p->most.pvs.out = out;
+      break;
     default:
       break;
   }

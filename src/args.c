@@ -1,4 +1,5 @@
 #include "args.h"
+#include "testmm.h"
 
 static const struct musli_arg musli_arg_list[] = {
   {"-lb",arg_set_black_level},
@@ -6,7 +7,8 @@ static const struct musli_arg musli_arg_list[] = {
   {"-setup",arg_set_type_setup},
   {"--bot-type",arg_set_bot_type},
   {"-r",arg_do_initial_random_moves},
-  {"-svgtest",arg_run_svg_test}
+  {"-svgtest",arg_run_svg_test},
+  {"--testmm",arg_run_minimax_tests}
 };
 
 void arg_parse(int argc, const char** argv,struct game_config* gc)

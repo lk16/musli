@@ -10,6 +10,7 @@
 #include "bot_random.h"
 #include "bot_least.h"
 #include "bot_stable.h"
+#include "bot_most.h"
 
 
 
@@ -20,6 +21,7 @@ enum player_type{
   PLAYER_BOT_RANDOM,
   PLAYER_BOT_LEAST,
   PLAYER_BOT_STABLE,
+  PLAYER_BOT_MOST,
   PLAYER_MAX_ENUM_VALUE, // DO NOT MOVE!
   PLAYER_DEFAULT_BOT = PLAYER_BOT_MOVES
 };
@@ -32,6 +34,7 @@ struct player{
     struct bot_random random;
     struct bot_least least;
     struct bot_stable stable;
+    struct bot_most most;
   };
 };
 
