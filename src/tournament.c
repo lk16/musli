@@ -134,10 +134,12 @@ int main(void){
   int i;
   
   
-  tournament_add(&t,PLAYER_BOT_STABLE,6,12,devnull);
   
-  for(i=1;i<=23;i++){
-    tournament_add(&t,PLAYER_BOT_RANDOM,1,1,devnull);
+  for(i=1;i<=7;i++){
+    tournament_add(&t,PLAYER_BOT_MOVES,i,2*i,devnull);
+    tournament_add(&t,PLAYER_BOT_STABLE,i,2*i,devnull);
+    tournament_add(&t,PLAYER_BOT_MOVES,i,2*i,devnull);
+    tournament_add(&t,PLAYER_BOT_STABLE,i,2*i,devnull);
   }
   
   //tournament_add(&t,PLAYER_HUMAN,0,0,stdout);

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <malloc.h>
 
+#include "pvs_helper.h"
 #include "game_config.h"
 
 #define SVG_BOARD_WIDTH (80)
@@ -28,9 +29,18 @@ void svg_print_footer(FILE* f);
 
 void svg_print_game_state(FILE* f,const struct game_state* gs,struct offset o);
 
-struct svg_game_state_tree* svg_game_state_tree_generate(
+struct svg_game_state_tree* svg_game_state_tree_generate_full(
   const struct game_state* gs,
-  int max_depth
+  int depth
+);
+
+struct svg_game_state_tree* svg_game_state_tree_generate_best(
+  const struct game_state* gs,
+  int depth,
+  int search_depth,
+  int(*heur)(const struct board*),
+  FILE* out,
+  int colour
 );
 
 void svg_game_state_tree_print(

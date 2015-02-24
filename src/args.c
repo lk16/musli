@@ -117,11 +117,19 @@ int arg_run_svg_test(struct game_config* gc,const struct parse_state* ps)
   (void)ps;
   FILE* test = fopen("test.svg","w");
   struct game_state gs;
-  game_state_init(&gs);
+  //game_state_init(&gs);
+  struct board b;
+  board_init(&b);
+  board_do_random_moves(&b,44);
+  gs.discs = b;
+  gs.turn = 0;
   struct svg_game_state_tree* tree;
-  int depth = 5;
-  tree = svg_game_state_tree_generate(&gs,depth);
+  FILE* devnull = fopen("/dev/null","w");
+  int depth = 16;
+  //tree = svg_game_state_tree_generate_full(&gs,depth);
+  tree = svg_game_state_tree_generate_best(&gs,depth,12,bot_moves_heuristic,devnull,0);
   svg_game_state_tree_print(test,tree,depth);
+  svg_game_state_tree_free(tree);
   fclose(test);
   exit(0); // ugly
   return 1;

@@ -5,7 +5,7 @@ void pvs_helper_init(struct pvs_helper* bot,int(*heur_func)(const struct board*)
 {
   bot_stats_init(&bot->stats);
   bot->out = stdout;
-  hash_table_init(&bot->table);
+  //hash_table_init(&bot->table);
   bot->heuristic = heur_func;
   bot->name = name;
 }
@@ -26,7 +26,7 @@ void pvs_helper_do_move_normally(struct pvs_helper* bot,const struct board* b, s
   
   int best_heur,best_id=0;
   
-  hash_table_clear(&bot->table);
+  //hash_table_clear(&bot->table);
   
   best_heur = MIN_HEURISTIC;
   for(int id=0;id<child_count;++id){
@@ -123,13 +123,13 @@ int pvs_helper_pvs_sorted(struct pvs_helper* bot,int alpha, int beta)
     return bot->heuristic(&bot->inspected);
   }
   
-  {
+  /*{
     const struct hash_table_value* hv;
     hv = hash_table_find(&bot->table,&bot->inspected);
     if(hv){
       return hv->heur;
     }
-  }
+  }*/
   
   
   uint64_t valid_moves = board_get_moves(&bot->inspected);
@@ -191,11 +191,11 @@ int pvs_helper_pvs_sorted(struct pvs_helper* bot,int alpha, int beta)
     }
   }
   
-  {
+  /*{
     struct hash_table_value hv;
     hv.heur = alpha;
     hash_table_add(&bot->table,&bot->inspected,&hv);
-  }
+  }*/
   return alpha;
 }
 

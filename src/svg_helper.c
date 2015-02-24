@@ -67,7 +67,7 @@ void svg_print_game_state(FILE* f, const struct game_state* gs,struct offset o)
   }
 }
 
-struct svg_game_state_tree* svg_game_state_tree_generate(
+struct svg_game_state_tree* svg_game_state_tree_generate_full(
   const struct game_state* gs,
   int depth
 ){
@@ -83,11 +83,71 @@ struct svg_game_state_tree* svg_game_state_tree_generate(
   res->child_count = child_end - children;
   struct svg_game_state_tree** res_child_it = res->children;
   for(child_it=children;child_it!=child_end;child_it++){
-    *res_child_it = svg_game_state_tree_generate(child_it,depth-1);
+    *res_child_it = svg_game_state_tree_generate_full(child_it,depth-1);
     res_child_it++;
   }
   return res;
 }
+
+struct svg_game_state_tree* svg_game_state_tree_generate_best(
+  const struct game_state* gs,
+  int depth,
+  int search_depth,
+  int(*heur)(const struct board*),
+  FILE* out,
+  int colour
+){
+  struct svg_game_state_tree* res;
+  res = malloc(sizeof(struct svg_game_state_tree));
+  res->gs = *gs;
+  if(depth==0){
+    res->child_count = 0;
+    return res;
+  }
+  struct game_state children[32],*child_end,*child_it;
+  int heurs[32],*heur_it=heurs;
+  child_end = game_state_get_children(gs,children);
+  struct pvs_helper pvs;
+  pvs_helper_init(&pvs,heur,"none");
+  pvs.depth = pvs.perfect_depth = search_depth;
+  pvs.out = out;
+  struct svg_game_state_tree** res_child_it = res->children;
+  if(1 /*gs->turn == colour*/){
+    int best_heur = MIN_HEURISTIC;
+    for(child_it=children;child_it!=child_end;child_it++){
+      pvs.inspected = child_it->discs;
+      pvs.moves_left = search_depth;
+      *heur_it = -pvs_helper_pvs_sorted(&pvs,MIN_HEURISTIC,MAX_HEURISTIC);
+      if(*heur_it > best_heur){
+        best_heur = *heur_it;
+      }
+      heur_it++;
+    }
+    child_it = children;
+    heur_it = heurs;
+    while(child_it != child_end){
+      if(*heur_it == best_heur){
+        *res_child_it = svg_game_state_tree_generate_best(child_it,depth-1,
+                                                          search_depth,heur,out,colour);
+        res_child_it++;
+      }
+      heur_it++;
+      child_it++;
+    }
+  }
+  else{
+    child_it = children;
+    while(child_it != child_end){
+      *res_child_it = svg_game_state_tree_generate_best(child_it,depth-1,
+                                                        search_depth,heur,out,colour);
+      res_child_it++;
+      child_it++;
+    }
+  }
+  res->child_count = res_child_it - res->children;
+  return res;
+}
+
 
 void svg_game_state_tree_free(struct svg_game_state_tree* tree)
 {
@@ -127,7 +187,7 @@ void svg_game_state_tree_print(
   const struct svg_game_state_tree* tree,
   int max_depth
 ){
-  int* width_table = malloc(max_depth*sizeof(int));
+  int* width_table = malloc((max_depth+1)*sizeof(int));
   svg_game_state_tree_get_width_table(tree,width_table,max_depth);
   int max_width=0;
   int i;
@@ -138,8 +198,8 @@ void svg_game_state_tree_print(
   }
   
   int* max_x_per_depth = malloc((max_depth+1)*sizeof(int));
-  for(i=0;i<=max_width;i++){
-    max_x_per_depth[i] = SVG_BOARD_X_SPACE ;
+  for(i=0;i<=max_depth;i++){
+    max_x_per_depth[i] = SVG_BOARD_X_SPACE;
   }
   
   svg_print_header(
@@ -149,8 +209,7 @@ void svg_game_state_tree_print(
   );
   svg_game_state_tree_print_internal(f,tree,0,max_depth,max_x_per_depth);
   svg_print_footer(f);
-  free(width_table);
-//  free(max_x_per_depth);
+  //free(width_table);
 }
 
 // returns x

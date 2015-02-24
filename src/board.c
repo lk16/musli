@@ -837,3 +837,4 @@ uint64_t uint64_get_stable(uint64_t input)
   
   return stable;
 }
+
