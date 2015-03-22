@@ -16,7 +16,6 @@ struct pvs_helper{
   FILE* out;
   const char* name;
   int moves_left;
-  struct hash_table table;
   int(*heuristic)(const struct board* b);
 };
 

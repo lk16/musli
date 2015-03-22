@@ -838,3 +838,7 @@ uint64_t uint64_get_stable(uint64_t input)
   return stable;
 }
 
+unsigned int board_hash(const struct board* b)
+{
+  return b->me * (b->opp+1);
+}

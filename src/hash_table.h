@@ -1,38 +1,30 @@
 #pragma once
 
-#include <stdlib.h>
 #include <malloc.h>
+#include <string.h>
 
 #include "board.h"
 
-#define HASH_TABLE_MAX_ELEMS (1024*1024)
-#define HASH_TABLE_BUCKETS (1024*1024)
-
-struct hash_table_value{
-  int heur;
-};
-
-
-struct hash_table_elem{
+struct board_ht_data{
   struct board b;
-  struct hash_table_value value;
-  struct hash_table_elem* next;
+  int up,low,depth;  
 };
 
-struct hash_table{
-  struct hash_table_elem** buckets;
-  struct hash_table_elem *unused,*elems_begin;
+typedef unsigned(*board_ht_hashfun_t)(const struct board*);
+typedef int(*board_ht_key_equals_t)(const struct board*,const struct board*);
+
+
+struct board_ht{
+  unsigned capacity;
+  struct board_ht_data* data;
+  board_ht_hashfun_t hash;
+  board_ht_key_equals_t key_equals;
 };
 
 
-unsigned long long hash_of_board(const struct board* b);
+struct board_ht* board_ht_new(unsigned size,board_ht_hashfun_t hash,board_ht_key_equals_t key_equals);
+void board_ht_free(struct board_ht* ht);
 
-void hash_table_init(struct hash_table* ht);
-void hash_table_init_free(struct hash_table* ht);
 
-int hash_table_add(struct hash_table* ht,const struct board* key,
-                   const struct hash_table_value* value);
-
-void hash_table_clear(struct hash_table* ht);
-
-struct hash_table_value* hash_table_find(struct hash_table* ht,const struct board* key);
+struct board_ht_data* board_ht_hash(struct board_ht* ht,const struct board* b);
+struct board_ht_data* board_ht_find(struct board_ht* ht,const struct board* b,int depth);
