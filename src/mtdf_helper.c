@@ -13,19 +13,25 @@ void mtdf_helper_init(struct mtdf_helper* m,int(*heur_func)(const struct board*)
 
 int mtdf_helper_alphabeta_main(struct mtdf_helper* m, int f)
 {
-  int g = f;
+  int g,low,high;
+  
+  g = f;
+  
+  low = f;
+  high = MAX_HEURISTIC;
+  
+  
   m->moves_left = m->depth;
   
   /*if(depth_remaining>2){
     g = test_mtdf_ht(b,ht,depth_remaining-2,g);
   }*/
 
-  int high = 64000;
-  int low = -64000;
   int beta;
   while(low < high){
     beta = g + ((g==low) ? 1 : 0);
     g = mtdf_helper_alphabeta_ht(m,beta);
+    printf("g = %d\n",g);
     if(g < beta){
       high = g;
     }
@@ -44,8 +50,8 @@ int mtdf_helper_alphabeta_exact_main(struct mtdf_helper* m, int f)
     g = test_mtdf_ht(b,ht,depth_remaining-2,g);
   }*/
 
-  int high = 64;
-  int low = -64;
+  int high = MAX_PERFECT_HEURISTIC;
+  int low = MIN_PERFECT_HEURISTIC;
   int beta;
   while(low < high){
     beta = g + ((g==low) ? 1 : 0);
@@ -63,6 +69,7 @@ int mtdf_helper_alphabeta_exact_main(struct mtdf_helper* m, int f)
 void mtdf_helper_do_move_normally(struct mtdf_helper* m,const struct board* b, struct board* res)
 {
   bot_stats_start(&m->stats);
+  board_ht_clear(m->hashtable);
   
   struct board children[32];
   int child_count = board_get_children(b,children) - children;
@@ -77,7 +84,7 @@ void mtdf_helper_do_move_normally(struct mtdf_helper* m,const struct board* b, s
   for(int id=0;id<child_count;++id){
     m->inspected = children[id];
     m->moves_left--;
-    int cur_heur = mtdf_helper_alphabeta_main(m,-best_heur);
+    int cur_heur = mtdf_helper_alphabeta_main(m,best_heur);
     m->moves_left++;
     if(cur_heur > best_heur){
       best_heur = cur_heur;
@@ -99,6 +106,7 @@ void mtdf_helper_do_move_normally(struct mtdf_helper* m,const struct board* b, s
 void mtdf_helper_do_move_perfectly(struct mtdf_helper* m,const struct board* b, struct board* res)
 {
   bot_stats_start(&m->stats);
+  board_ht_clear(m->hashtable);
   
   struct board children[32];
   int child_count = board_get_children(b,children) - children;
@@ -170,14 +178,130 @@ int mtdf_helper_alphabeta_ht(
   struct mtdf_helper* m,
   int beta
 ){
+  m->stats.nodes++;
+  
+  if(!m->hashtable || m->moves_left < MTDF_MIN_HASHTABLE_DEPTH){
+    return mtdf_helper_alphabeta_no_ht(m,beta);
+  }
+  int g = MIN_HEURISTIC;
+  
+  struct board_ht_data* hashed_data;
+  if((hashed_data = board_ht_find(m->hashtable,&m->inspected,m->moves_left))){
+    if(hashed_data->low >= beta){
+      return hashed_data->low;
+    }
+    if(hashed_data->up <= beta-1){
+      return hashed_data->up;
+    }
+  }
+  struct board children[32],*child_end,*it;
+  child_end = board_get_children(&m->inspected,children);
+  
+  if(child_end == children){
+    int heur;
+    board_switch_turn(&m->inspected);
+    if(board_get_moves(&m->inspected) == 0ull){
+      heur = -1000 * board_get_disc_diff(&m->inspected);    
+    }
+    else{
+      heur = -mtdf_helper_alphabeta_ht(m,1-beta);
+    }
+    board_switch_turn(&m->inspected);
+    return heur;
+  }
+  
+  
+  //sort_children(children,child_end);
+  for(it=children;it!=child_end && g < beta;it++){
+    m->moves_left--;
+    int cur = -mtdf_helper_alphabeta_ht(m,1-beta);
+    m->moves_left++;
+    g = (cur > g ? cur : g);
+  }
+  
+  
+  hashed_data = board_ht_hash(m->hashtable,&m->inspected);
+  if(hashed_data->depth == m->moves_left){
+    if(!board_equals(&m->inspected,&hashed_data->b)){
+      hashed_data->b = m->inspected;
+      hashed_data->low = MIN_HEURISTIC;
+      hashed_data->up = MAX_HEURISTIC;
+    }
+    hashed_data->depth = m->moves_left;
+    if(g <= beta-1){
+      hashed_data->up = g;
+    }
+    if(g >= beta){
+      hashed_data->low = g;
+    }
+    
+  }
+  return g;
+}
+
+int mtdf_helper_alphabeta_no_ht(
+  struct mtdf_helper* m,
+  int beta
+){
+  m->stats.nodes++;
+  
+  uint64_t moves = board_get_moves(&m->inspected);
+
+  if(moves == 0ull){
+    int heur;
+    board_switch_turn(&m->inspected);
+    if(board_get_moves(&m->inspected) == 0ull){
+      heur = -1000 * board_get_disc_diff(&m->inspected);    
+    }
+    else{
+      heur = -mtdf_helper_alphabeta_no_ht(m,1-beta);
+    }
+    board_switch_turn(&m->inspected);
+    return heur;
+  }
+  if(m->moves_left == 0){
+    return -m->heuristic(&m->inspected);
+  }
+  
+  
+  int move,g = MIN_HEURISTIC;
+  uint64_t undo_data;
+  while(moves!=0ull && g < beta){ 
+    
+    move = uint64_find_first(moves);
+    
+    undo_data = board_do_move(&m->inspected,move);
+    m->moves_left--;
+    {
+      int cur = -mtdf_helper_alphabeta_no_ht(m,1-beta);
+      if(cur > g){
+        g = cur;
+      }
+    }
+    m->moves_left++;
+    board_undo_move(&m->inspected,move,undo_data);
+    
+    moves &= uint64_reset[move];
+  }
+  return g;
+}  
+
+
+
+int mtdf_helper_alphabeta_exact_ht(
+  struct mtdf_helper* m,
+  int beta
+){
+  m->stats.nodes++;
+  
   const struct board* b = &m->inspected;
   struct board_ht* ht = m->hashtable;
   int depth_remaining = m->moves_left;
   
   if(!ht || depth_remaining < MTDF_MIN_HASHTABLE_DEPTH){
-    return mtdf_helper_alphabeta_no_ht(m,beta);
+    return mtdf_helper_alphabeta_exact_no_ht(m,beta);
   }
-  int g = MIN_HEURISTIC;
+  int g = MIN_PERFECT_HEURISTIC;
   
   
   struct board_ht_data* hashed_data;
@@ -194,7 +318,7 @@ int mtdf_helper_alphabeta_ht(
   //sort_children(children,child_end);
   for(it=children;it!=child_end && g < beta;it++){
     m->moves_left--;
-    int cur = -mtdf_helper_alphabeta_ht(m,1-beta);
+    int cur = -mtdf_helper_alphabeta_exact_ht(m,1-beta);
     m->moves_left++;
     g = (cur > g ? cur : g);
   }
@@ -204,8 +328,8 @@ int mtdf_helper_alphabeta_ht(
   if(hashed_data->depth == depth_remaining){
     if(!board_equals(b,&hashed_data->b)){
       hashed_data->b = *b;
-      hashed_data->low = MIN_HEURISTIC;
-      hashed_data->up = MAX_HEURISTIC;
+      hashed_data->low = MIN_PERFECT_HEURISTIC;
+      hashed_data->up = MAX_PERFECT_HEURISTIC;
     }
     hashed_data->depth = depth_remaining;
     if(g <= beta-1){
@@ -219,18 +343,20 @@ int mtdf_helper_alphabeta_ht(
   return g;
 }
 
-int mtdf_helper_alphabeta_no_ht(
+int mtdf_helper_alphabeta_exact_no_ht(
   struct mtdf_helper* m,
   int beta
 ){
+  m->stats.nodes++;
+
   struct board* b = &m->inspected;
   int depth_remaining = m->moves_left;
   
   if(depth_remaining == 0){
-    return mtdf_helper_heuristic(b);
+    return m->heuristic(b);
   }
   else{
-    int move,cur,g = MIN_HEURISTIC;
+    int move,cur,g = MIN_PERFECT_HEURISTIC;
     uint64_t undo_data,moves = board_get_moves(b);
     while(moves!=0ull && g < beta){ 
       

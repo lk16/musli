@@ -5,11 +5,16 @@ struct board_ht* board_ht_new(unsigned int capacity, board_ht_hashfun_t hash, bo
   struct board_ht* res = malloc(sizeof(*res));
   res->capacity = capacity;
   res->data = malloc(capacity*sizeof(*res->data));
-  memset(res->data,0,capacity*sizeof(*res->data));
   res->key_equals = key_equals;
   res->hash = hash;
   return res;
 }
+
+void board_ht_clear(struct board_ht* ht)
+{
+  memset(ht->data,0,ht->capacity*sizeof(*ht->data));
+}
+
 
 void board_ht_free(struct board_ht* ht)
 {

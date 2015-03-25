@@ -28,3 +28,4 @@ void board_ht_free(struct board_ht* ht);
 
 struct board_ht_data* board_ht_hash(struct board_ht* ht,const struct board* b);
 struct board_ht_data* board_ht_find(struct board_ht* ht,const struct board* b,int depth);
+void board_ht_clear(struct board_ht*ht);

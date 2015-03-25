@@ -84,7 +84,7 @@ void player_redirect_output(struct player* p, FILE* out)
     case PLAYER_HUMAN:
       break;
     case PLAYER_BOT_MOVES:
-      p->moves.pvs.out = out;
+      p->moves.mtdf.out = out;
       break;
     case PLAYER_BOT_LEAST:
       p->least.pvs.out = out;

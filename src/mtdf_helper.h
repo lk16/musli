@@ -7,7 +7,7 @@
 #include "macros.h"
 #include "hash_table.h"
 
-#define MTDF_MIN_HASHTABLE_DEPTH 7
+#define MTDF_MIN_HASHTABLE_DEPTH 99
 
 struct mtdf_helper{
   int depth,perfect_depth;
@@ -25,9 +25,7 @@ void mtdf_helper_init(struct mtdf_helper* m,int(*)(const struct board*),const ch
 void mtdf_helper_set_level(struct mtdf_helper* m,int depth,int perfect_depth);
 void mtdf_helper_do_move(struct mtdf_helper* m,const struct board* b,struct board* res);
 
-int mtdf_helper_heuristic(const struct board* b);
-
-int mtdf_helper_alphabeta_main(struct mtdf_helper* m,int f);
+int mtdf_helper_alphabeta_main(struct mtdf_helper* m, int f);
 int mtdf_helper_alphabeta_ht(struct mtdf_helper* m,int beta);
 int mtdf_helper_alphabeta_no_ht(struct mtdf_helper* m,int beta);
 

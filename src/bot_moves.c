@@ -20,15 +20,15 @@ int bot_moves_heuristic(const struct board* b)
 
 void bot_moves_init(struct bot_moves* bot)
 {
-  pvs_helper_init(&bot->pvs,bot_moves_heuristic,"moves");
+  mtdf_helper_init(&bot->mtdf,bot_moves_heuristic,"moves");
 }
 
 void bot_moves_set_level(struct bot_moves* bot, int depth, int perfect_depth)
 {
-  pvs_helper_set_level(&bot->pvs,depth,perfect_depth);
+  mtdf_helper_set_level(&bot->mtdf,depth,perfect_depth);
 }
 
 void bot_moves_do_move(struct bot_moves* bot, const struct board* b,struct board* res)
 {
-  pvs_helper_do_move(&bot->pvs,b,res);
+  mtdf_helper_do_move(&bot->mtdf,b,res);
 }

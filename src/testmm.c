@@ -236,7 +236,7 @@ int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps){
   
   struct board_ht* ht = board_ht_new((16*1024*1024)-1,board_hash,board_equals);
   unsigned i;
-#if 1
+#if 0
   for(unsigned depth=7;depth<=8;depth++){
     for(i=0;i<100;i++){
       board_init(&b);
@@ -264,7 +264,7 @@ int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps){
   
   board_init(&b);
   //srand(0);
-  board_do_random_moves(&b,48);
+  //board_do_random_moves(&b,48);
   board_print(&b,stdout,0);
   
   for(i=0;i<60;i++){

@@ -4,10 +4,10 @@
 
 #include "board.h"
 #include "bot_stats.h"
-#include "pvs_helper.h"
+#include "mtdf_helper.h"
 
 struct bot_moves{
-  struct pvs_helper pvs;
+  struct mtdf_helper mtdf;
 };
 
 
