@@ -43,6 +43,7 @@ add_library(musli STATIC
   svg_helper.c
   bot_most.c
   testmm.c
+  mtdf_helper.c
 )
 
 add_executable(../tournament
