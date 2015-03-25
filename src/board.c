@@ -488,10 +488,11 @@ struct board* board_get_children(const struct board* b, struct board* out)
   }
   while(valid_moves != 0ull){
     int move_id = uint64_find_first(valid_moves);
-    //*out_end = *b;
     board_do_move(out_end,move_id);
     out_end++;
-    valid_moves &= uint64_reset[move_id]; 
+    valid_moves &= uint64_reset[move_id];
+    //valid_moves >>= (move_id+1);
+    //valid_moves <<= (move_id+1);
   }
   return out_end;
 }
@@ -840,5 +841,33 @@ uint64_t uint64_get_stable(uint64_t input)
 
 unsigned int board_hash(const struct board* b)
 {
-  return b->me * (b->opp+1);
+  struct board mod;
+  board_modulo_rotation(b,&mod);
+  return mod.me * (mod.opp+1);
+}
+
+void board_rotate(const struct board* b, int n,struct board* out)
+{
+  out->me = uint64_rotate(b->me,n);
+  out->opp = uint64_rotate(b->opp,n);
+}
+
+int board_less(const struct board* lhs,const struct board* rhs)
+{
+  if(lhs->me != rhs->me){
+    return lhs->me < rhs->me;
+  }
+  return lhs->opp < rhs->opp;
+}
+
+void board_modulo_rotation(const struct board* b,struct board* out){
+  struct board min,tmp;
+  board_rotate(b,0,&min);
+  for(int i=1;i<8;i++){
+    board_rotate(b,i,&tmp);
+    if(board_less(&tmp,&min)){
+      min = tmp;
+    }
+  }
+  *out = min;
 }

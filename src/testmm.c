@@ -1,60 +1,12 @@
 #include "testmm.h"
 
-/*
-struct lame_ht* lame_ht_new(unsigned(*hash)(const struct board*))
-{
-  struct lame_ht* res = malloc(sizeof(struct lame_ht));
-  res->hash = hash;
-  lame_ht_clear(res);
-  return res;
-}
-
-void lame_ht_clear(struct lame_ht* ht)
-{
-  int i;
-  for(i=0;i<LAME_HT_SIZE;i++){
-    ht->data[i].b.me = ht->data[i].b.opp = 0ull;
-    ht->data[i].up = 64000;
-    ht->data[i].low = -64000;
-  }
-}
-
-
-void lame_ht_free(struct lame_ht* ht)
-{
-  free(ht);
-}
-
-
-struct lame_ht_data* lame_ht_find(struct lame_ht* ht, const struct board* b)
-{
-  struct lame_ht_data* res = ht->data + (ht->hash(b) % LAME_HT_SIZE);
-  if(res->b.me == b->me && res->b.opp == b->opp){
-    return res;
-  }
-  return NULL;
-}
-
-struct lame_ht_data* lame_ht_insert(struct lame_ht* ht, const struct board* b)
-{
-  struct lame_ht_data* ptr = ht->data + (ht->hash(b) % LAME_HT_SIZE);
-  if(ptr->b.me != b->me || ptr->b.opp != b->opp){
-    ptr->b = *b;
-    ptr->low = -64000; 
-    ptr->up = 64000;
-  }
-  return ptr;
-}*/
-
 int dummy_heur(const struct board* b){
-  int res = 0;
   int me_move_count = board_count_moves(b);
   int opp_move_count = board_count_opponent_moves(b);
   if(me_move_count==0 && opp_move_count==0){
     return 1000 * board_get_disc_diff(b);
   }
-  res += me_move_count;
-  res -= opp_move_count;
+  int res = me_move_count - opp_move_count;
   
   res += 3 *(
       uint64_count(b->me & 0x8100000000000081) 
@@ -136,22 +88,20 @@ int test_alphabeta_ht(
   int depth_remaining,
   int beta
 ){
-  if(!ht || depth_remaining < 6){
+  if(!ht || depth_remaining < 4){
     struct board copy = *b;
     return test_alphabeta_no_ht(&copy,depth_remaining,beta);
   }
-  int g = -64000;
+  int g = MIN_HEURISTIC;
   
   
-  struct board_ht_data* hashed_data;
-  if((hashed_data = board_ht_find(ht,b,depth_remaining))){
-    if(hashed_data->low >= beta){
-      return hashed_data->low;
-    }
-    if(hashed_data->up <= beta-1){
-      return hashed_data->up;
-    }
+  int hash_table_heur = test_alphabeta_get_hashed_data(b,ht,depth_remaining,beta);
+  if(hash_table_heur != HASHED_VALUE_NO_EXACT_RESULT){
+    return hash_table_heur;
   }
+  
+  
+  
   struct board children[32],*child_end,*it;
   child_end = board_get_children(b,children);
   sort_children(children,child_end);
@@ -161,12 +111,43 @@ int test_alphabeta_ht(
   }
   
   
-  hashed_data = board_ht_hash(ht,b);
-  if(hashed_data->depth <= depth_remaining){
+  struct board_ht_data* hashed_data = board_ht_hash(ht,b);
+  test_alphabeta_update_hashed_data(b,g,beta,hashed_data,depth_remaining);
+  
+  return g;
+}
+
+int test_alphabeta_get_hashed_data(
+  const struct board* b,
+  struct board_ht* ht,
+  int depth_remaining,
+  int beta
+){
+  struct board_ht_data* hashed_data;
+  if((hashed_data = board_ht_find(ht,b,depth_remaining))){
+    if(hashed_data->low >= beta){
+      return hashed_data->low;
+    }
+    if(hashed_data->up <= beta-1){
+      return hashed_data->up;
+    }
+  }  
+  return HASHED_VALUE_NO_EXACT_RESULT;
+}
+
+
+void test_alphabeta_update_hashed_data(
+  const struct board* b,
+  int g,
+  int beta,
+  struct board_ht_data* hashed_data,
+  int depth_remaining
+){
+  if(hashed_data->depth == depth_remaining){
     if(!board_equals(b,&hashed_data->b)){
       hashed_data->b = *b;
-      hashed_data->low = -64000;
-      hashed_data->up = 64000;
+      hashed_data->low = MIN_HEURISTIC;
+      hashed_data->up = MAX_HEURISTIC;
     }
     hashed_data->depth = depth_remaining;
     if(g <= beta-1){
@@ -175,22 +156,35 @@ int test_alphabeta_ht(
     if(g >= beta){
       hashed_data->low = g;
     }
-    
   }
-  return g;
 }
+
 
 int test_alphabeta_no_ht(
   struct board* b,
   int depth_remaining,
   int beta
 ){
+   uint64_t moves = board_get_moves(b);
+  
+  if(moves == 0ull){
+    int heur;
+    struct board copy = *b;
+    board_switch_turn(&copy);
+    if(board_get_moves(&copy) == 0ull){
+      heur = -1000 * board_get_disc_diff(&copy);    
+    }
+    else{
+      heur = -test_alphabeta_no_ht(&copy,depth_remaining,1-beta);
+    }
+    return heur;
+  }
   if(depth_remaining == 0){
     return dummy_heur(b);
   }
   else{
-    int move,cur,g = -64000;
-    uint64_t undo_data,moves = board_get_moves(b);
+    int move,cur,g = MIN_HEURISTIC;
+    uint64_t undo_data = board_get_moves(b);
     while(moves!=0ull && g < beta){ 
       
       move = uint64_find_first(moves);
@@ -207,17 +201,13 @@ int test_alphabeta_no_ht(
   }
 }  
 
-#define USE_HT 1
-
 int test_mtdf_ht(const struct board* b,struct board_ht* ht,int depth_remaining,int f){
   
   int g = f;
   
-  /*if(depth_remaining<0){
-    return g;
+  if(depth_remaining>2){
+    g = test_mtdf_ht(b,ht,depth_remaining-2,g);
   }
-  g = test_mtdf_ht(b,ht,depth_remaining-2,g);
-  */
   int high = 64000;
   int low = -64000;
   int beta;
@@ -237,7 +227,6 @@ int test_mtdf_ht(const struct board* b,struct board_ht* ht,int depth_remaining,i
 
 
 
-
 int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps){
   (void)ps;
   (void)gc;
@@ -245,8 +234,9 @@ int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps){
  
 
   
-  struct board_ht* ht = board_ht_new((1024*1024)-1,board_hash,board_equals);
+  struct board_ht* ht = board_ht_new((16*1024*1024)-1,board_hash,board_equals);
   unsigned i;
+#if 1
   for(unsigned depth=7;depth<=8;depth++){
     for(i=0;i<100;i++){
       board_init(&b);
@@ -266,14 +256,16 @@ int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps){
     }
     printf("%s","\n");
   }
+#endif
   
   struct bot_stats stats;
   bot_stats_init(&stats);
   int heur;
   
   board_init(&b);
-  srand(0);
-  //board_do_random_moves(&b,25);
+  //srand(0);
+  board_do_random_moves(&b,48);
+  board_print(&b,stdout,0);
   
   for(i=0;i<60;i++){
     bot_stats_start(&stats);

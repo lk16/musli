@@ -1,5 +1,38 @@
 #include "bitwise.h"
 
+uint64_t uint64_mirror_vertical(uint64_t x){
+  uint64_t  y;
+  y = (x ^ (x >>  7)) & 0x0101010101010101; x ^= y ^ (y <<  7);
+  y = (x ^ (x >>  5)) & 0x0202020202020202; x ^= y ^ (y <<  5);
+  y = (x ^ (x >>  3)) & 0x0404040404040404; x ^= y ^ (y <<  3);
+  y = (x ^ (x >>  1)) & 0x0808080808080808; x ^= y ^ (y <<  1);
+return x; 
+}
+
+uint64_t uint64_rotate_left(uint64_t x){
+  uint64_t  y;
+  y = (x ^ (x >> 63)) & 0x0000000000000001; x ^= y ^ (y << 63);
+  y = (x ^ (x >> 54)) & 0x0000000000000102; x ^= y ^ (y << 54);
+  y = (x ^ (x >> 45)) & 0x0000000000010204; x ^= y ^ (y << 45);
+  y = (x ^ (x >> 36)) & 0x0000000001020408; x ^= y ^ (y << 36);
+  y = (x ^ (x >> 27)) & 0x0000000102040810; x ^= y ^ (y << 27);
+  y = (x ^ (x >> 18)) & 0x0000010204081020; x ^= y ^ (y << 18);
+  y = (x ^ (x >>  9)) & 0x0001020408102040; x ^= y ^ (y <<  9);
+  return uint64_mirror_vertical(x);
+}
+
+uint64_t uint64_rotate(uint64_t x,int n)
+{
+  if(n & 4){
+    x = uint64_mirror_vertical(x);
+  }
+  for(int i=0;i<(n & 3);i++){
+    x = uint64_rotate_left(x);
+  }
+  return x;
+}
+
+
 const uint64_t uint64_set[65] = {
   (1ull << 0),
   (1ull << 1),

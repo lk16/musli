@@ -46,8 +46,6 @@ struct board_with_heur* board_get_children_with_heur(const struct board* b,struc
 
 int board_only_similar_siblings(const struct board* children,int size);
 
-int board_equals(const struct board* lhs,const struct board* rhs);
-
 void board_do_random_moves(struct board* b,int n);
 
 int board_is_child(const struct board* b,const struct board* child);
@@ -59,3 +57,12 @@ uint64_t uint64_get_stable(uint64_t bits);
 void uint64_print(uint64_t x,FILE* file);
 
 unsigned int board_hash(const struct board* b);
+
+
+int board_equals(const struct board* lhs,const struct board* rhs);
+
+int board_less(const struct board* lhs,const struct board* rhs);
+
+void board_rotate(const struct board* b,int n,struct board* out);
+
+void board_modulo_rotation(const struct board* b,struct board* out);

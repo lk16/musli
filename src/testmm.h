@@ -9,30 +9,7 @@
 #include "bot_stats.h"
 #include "hash_table.h"
 
-
-/*
-#define LAME_HT_SIZE ((1024*1024)-1)
-
-struct lame_ht_data{
-  struct board b;
-  int up,low;
-};
-
-
-unsigned lame_board_hash(const struct board* b); 
-
-struct lame_ht{
-  struct lame_ht_data data[LAME_HT_SIZE];
-  unsigned size;
-  unsigned(*hash)(const struct board*);
-  int(*key_equals)(const struct board*,const struct board*);
-};
-
-struct lame_ht* lame_ht_new(unsigned(*hash)(const struct board*));
-struct lame_ht_data* lame_ht_find(struct lame_ht* ht,const struct board* b);
-void lame_ht_free(struct lame_ht* ht);
-void lame_ht_clear(struct lame_ht* ht);*/
-
+#define HASHED_VALUE_NO_EXACT_RESULT (9999999)
 
 int dummy_heur(const struct board* b);
 
@@ -44,5 +21,22 @@ int test_pvs(const struct board* b,int depth_remaining,int alpha,int beta);
 int test_alphabeta_ht(const struct board* b,struct board_ht* ht, int depth_remaining, int beta);
 int test_alphabeta_no_ht(struct board* b, int depth_remaining,int beta);
 int test_mtdf_ht(const struct board* b,struct board_ht* ht,int depth_remaining,int f);
+
+int test_alphabeta_exact_ht(const struct board* b,struct board_ht* ht, int depth_remaining, int beta);
+int test_alphabeta_exact_no_ht(struct board* b, int depth_remaining,int beta);
+int test_mtdf_exact_ht(const struct board* b,struct board_ht* ht,int depth_remaining,int f);
+
+
+
+void test_alphabeta_update_hashed_data(const struct board* b,int g,int beta,struct board_ht_data* hashed_data,int depth_remaining);
+
+
+int test_alphabeta_get_hashed_data(
+  const struct board* b,
+  struct board_ht* ht,
+  int depth_remaining,
+  int beta
+);
+
 
 int arg_run_minimax_tests(struct game_config* gc,const struct parse_state* ps);
